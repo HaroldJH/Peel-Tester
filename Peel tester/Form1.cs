@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
@@ -17,6 +17,8 @@ namespace Peel_tester
     {
         private static SerialPort sp;
         private static SerialCommProcess sc;
+        private Queue queue;
+
         public Form1()
         {
             InitializeComponent();
@@ -36,7 +38,7 @@ namespace Peel_tester
                 try
                 {
                     sp.Open();
-                    //EventLog.WriteEntry("성공?", "연결되었습니다.");
+                    queue = sc.getQueue();
                     Console.WriteLine("CONNECTED");
                 }
                 catch(SystemException exception)
@@ -54,7 +56,7 @@ namespace Peel_tester
         {
             byte bt = (byte)sp.ReadByte();
             Console.WriteLine(bt);
-            sc.cumulativeData(bt);
+            //sc.cumulativeData(bt);
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -64,10 +66,13 @@ namespace Peel_tester
             GraphPane graph = zedGraphControl1.GraphPane;
             PointPairList list = new PointPairList();
 
-            // Set Coordinate(X,Y)
-            for (int i = 0; i < 60; i++ )
+            int pass = 0, fail = 0;
+            // Set Coordinate(X,Y) - Temp
+            queue = sc.getQueue();
+            for (int i = 0; i < queue.Count; i++)
             {
                 x = (double)i;
+               // x = double.Parse(queue.Dequeue().ToString());
                 //y = Math.Sin((double)i * 0.5) * 8;
                 y = i * sign;
                 list.Add(x, y);
@@ -77,24 +82,34 @@ namespace Peel_tester
                 }
                 else
                     sign = 1;
+
+                if (textBox1.Text != "" && textBox2.Text != "")
+                {
+                    // Max Val. Check.
+                    if (y > double.Parse(textBox1.Text))
+                    {
+                        // Increase fail count
+                        fail++;
+                    }
+                    else
+                    {
+                        // Increase pass count
+                        pass++;
+                    }
+                    // Min Val. Check
+                    if (y > double.Parse(textBox2.Text))
+                    {
+                        // Increase fail count
+                        fail++;
+                    }
+                    else
+                    {
+                        // Increase pass count
+                        pass++;
+                    }
+                }
             }
-            // Max Val. Check.
-            if(y > double.Parse(textBox2.Text)){
-                // fail값 증가.
-            }
-            else
-            {
-                // pass값 증가.
-            }
-            // Min Val. Check
-            if (y > double.Parse(textBox2.Text))
-            {
-                // fail값 증가.
-            }
-            else
-            {
-                // pass값 증가.
-            }
+            label21.Text = String.Format("{0}", fail);
 
             // Add Line To graph
             LineItem curve = graph.AddCurve("sin", list, Color.Red, SymbolType.Circle);
@@ -104,7 +119,7 @@ namespace Peel_tester
             zedGraphControl1.AxisChange();
             zedGraphControl1.Invalidate();
             zedGraphControl1.Refresh();
-
+            
             // Available Save file
             zedGraphControl1.MasterPane.GetImage().Save("graph.png", System.Drawing.Imaging.ImageFormat.Png);
         }
@@ -112,7 +127,8 @@ namespace Peel_tester
         private void button3_Click(object sender, EventArgs e)
         {
             // Disconnect
-            if(sp.IsOpen) {
+            if (sp.IsOpen)
+            {
                 sp.Close();
             }
         }
