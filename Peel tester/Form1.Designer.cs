@@ -85,6 +85,15 @@
             this.label26 = new System.Windows.Forms.Label();
             this.button11 = new System.Windows.Forms.Button();
             this.button12 = new System.Windows.Forms.Button();
+            this.label27 = new System.Windows.Forms.Label();
+            this.label28 = new System.Windows.Forms.Label();
+            this.label29 = new System.Windows.Forms.Label();
+            this.label30 = new System.Windows.Forms.Label();
+            this.label31 = new System.Windows.Forms.Label();
+            this.label32 = new System.Windows.Forms.Label();
+            this.label33 = new System.Windows.Forms.Label();
+            this.label34 = new System.Windows.Forms.Label();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // button1
@@ -117,7 +126,7 @@
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 2;
-            this.button2.Text = "button2";
+            this.button2.Text = "Draw";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
@@ -127,7 +136,7 @@
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(75, 23);
             this.button3.TabIndex = 3;
-            this.button3.Text = "button3";
+            this.button3.Text = "Disconnect";
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
@@ -278,7 +287,7 @@
             // label17
             // 
             this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(435, 128);
+            this.label17.Location = new System.Drawing.Point(439, 117);
             this.label17.Name = "label17";
             this.label17.Size = new System.Drawing.Size(26, 12);
             this.label17.TabIndex = 20;
@@ -330,9 +339,9 @@
             this.label21.AutoSize = true;
             this.label21.Location = new System.Drawing.Point(590, 89);
             this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(44, 12);
+            this.label21.Size = new System.Drawing.Size(54, 12);
             this.label21.TabIndex = 26;
-            this.label21.Text = "label21";
+            this.label21.Text = "max avg";
             // 
             // button4
             // 
@@ -350,8 +359,9 @@
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(75, 23);
             this.button5.TabIndex = 28;
-            this.button5.Text = "button5";
+            this.button5.Text = "Connect";
             this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button1_Click);
             // 
             // button6
             // 
@@ -566,11 +576,100 @@
             this.button12.UseVisualStyleBackColor = true;
             this.button12.Click += new System.EventHandler(this.button12_Click);
             // 
+            // label27
+            // 
+            this.label27.AutoSize = true;
+            this.label27.Location = new System.Drawing.Point(764, 86);
+            this.label27.Name = "label27";
+            this.label27.Size = new System.Drawing.Size(0, 12);
+            this.label27.TabIndex = 55;
+            // 
+            // label28
+            // 
+            this.label28.AutoSize = true;
+            this.label28.Location = new System.Drawing.Point(811, 122);
+            this.label28.Name = "label28";
+            this.label28.Size = new System.Drawing.Size(53, 12);
+            this.label28.TabIndex = 56;
+            this.label28.Text = "표준편차";
+            // 
+            // label29
+            // 
+            this.label29.AutoSize = true;
+            this.label29.Location = new System.Drawing.Point(789, 152);
+            this.label29.Name = "label29";
+            this.label29.Size = new System.Drawing.Size(22, 12);
+            this.label29.TabIndex = 57;
+            this.label29.Text = "CP";
+            // 
+            // label30
+            // 
+            this.label30.AutoSize = true;
+            this.label30.Location = new System.Drawing.Point(789, 174);
+            this.label30.Name = "label30";
+            this.label30.Size = new System.Drawing.Size(30, 12);
+            this.label30.TabIndex = 58;
+            this.label30.Text = "CPK";
+            // 
+            // label31
+            // 
+            this.label31.AutoSize = true;
+            this.label31.Location = new System.Drawing.Point(592, 57);
+            this.label31.Name = "label31";
+            this.label31.Size = new System.Drawing.Size(30, 12);
+            this.label31.TabIndex = 59;
+            this.label31.Text = "max";
+            // 
+            // label32
+            // 
+            this.label32.AutoSize = true;
+            this.label32.Location = new System.Drawing.Point(592, 112);
+            this.label32.Name = "label32";
+            this.label32.Size = new System.Drawing.Size(26, 12);
+            this.label32.TabIndex = 60;
+            this.label32.Text = "min";
+            // 
+            // label33
+            // 
+            this.label33.AutoSize = true;
+            this.label33.Location = new System.Drawing.Point(594, 142);
+            this.label33.Name = "label33";
+            this.label33.Size = new System.Drawing.Size(50, 12);
+            this.label33.TabIndex = 61;
+            this.label33.Text = "min avg";
+            // 
+            // label34
+            // 
+            this.label34.AutoSize = true;
+            this.label34.Location = new System.Drawing.Point(272, 39);
+            this.label34.Name = "label34";
+            this.label34.Size = new System.Drawing.Size(97, 12);
+            this.label34.TabIndex = 62;
+            this.label34.Text = "User information";
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Location = new System.Drawing.Point(359, 39);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(15, 14);
+            this.checkBox1.TabIndex = 63;
+            this.checkBox1.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1119, 669);
+            this.Controls.Add(this.checkBox1);
+            this.Controls.Add(this.label34);
+            this.Controls.Add(this.label33);
+            this.Controls.Add(this.label32);
+            this.Controls.Add(this.label31);
+            this.Controls.Add(this.label30);
+            this.Controls.Add(this.label29);
+            this.Controls.Add(this.label28);
+            this.Controls.Add(this.label27);
             this.Controls.Add(this.button12);
             this.Controls.Add(this.button11);
             this.Controls.Add(this.label26);
@@ -691,6 +790,15 @@
         private System.Windows.Forms.Label label26;
         private System.Windows.Forms.Button button11;
         private System.Windows.Forms.Button button12;
+        private System.Windows.Forms.Label label27;
+        private System.Windows.Forms.Label label28;
+        private System.Windows.Forms.Label label29;
+        private System.Windows.Forms.Label label30;
+        private System.Windows.Forms.Label label31;
+        private System.Windows.Forms.Label label32;
+        private System.Windows.Forms.Label label33;
+        private System.Windows.Forms.Label label34;
+        private System.Windows.Forms.CheckBox checkBox1;
 
         //private System.Collections.Queue queue;
     }

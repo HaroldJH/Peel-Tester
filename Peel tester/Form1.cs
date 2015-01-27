@@ -114,77 +114,99 @@ namespace Peel_tester
 
         private void button2_Click(object sender, EventArgs e)
         {
-            // Draw Graph
-            double x, y = 0.0f, sign = 1;
-            graph = zedGraphControl1.GraphPane;
-            PointPairList list = new PointPairList();
-
-            int pass = 0, fail = 0;
-            // Set Coordinate(X,Y) - Temp
-            //queue = sc.getQueue();
-            for (int i = 0; i < 60; i++)
+            if (!sp.IsOpen)
             {
-                x = (double)i;
-                //x = double.Parse(queue.Dequeue().ToString());
-                y = Math.Sin((double)i * 0.5) * 8;
-                y = i * sign;
-                list.Add(x, y);
-                if (i % 2 == 0)
-                {
-                    //sign = -1;
-                }
-                else
-                    sign = 1;
+                // 연결상태확인 메시지 출력
+            }
+            else
+            {
+                // Draw Graph
+                double x, y = 0.0f, sign = 1;
+                graph = zedGraphControl1.GraphPane;
+                PointPairList list = new PointPairList();
 
-                if (textBox1.Text != "" && textBox2.Text != "")
+                int pass = 0, fail = 0;
+                double sum = 0f, CP = 0f, CPK = 0f, USL = 0f, LSL = 0f, SD = 0, k = 0f, avg = 0f;
+                // Set Coordinate(X,Y) - Temp
+                queue = sc.getQueue();
+                for (int i = 0; i < queue.Count; i++)
                 {
-                    // Max Val. Check.
-                    if (y > double.Parse(textBox1.Text))
+                    //x = (double)i;
+                    x = double.Parse(queue.Dequeue().ToString());
+                    y = Math.Sin((double)i * 0.5) * 8;
+                    sum += y;
+                    //y = i * sign;
+                    list.Add(x, y);
+                    if (i % 2 == 0)
                     {
-                        // Increase fail count
-                        fail++;
+                        //sign = -1;
                     }
                     else
+                        sign = 1;
+
+                    if (textBox1.Text != "" && textBox2.Text != "")
                     {
-                        // Increase pass count
-                        pass++;
-                    }
-                    // Min Val. Check
-                    if (y > double.Parse(textBox2.Text))
-                    {
-                        // Increase fail count
-                        fail++;
-                    }
-                    else
-                    {
-                        // Increase pass count
-                        pass++;
+                        // Max Val. Check.
+                        if (y > double.Parse(textBox1.Text))
+                        {
+                            // Increase fail count
+                            fail++;
+                        }
+                        else
+                        {
+                            // Increase pass count
+                            pass++;
+                        }
+                        // Min Val. Check
+                        if (y > double.Parse(textBox2.Text))
+                        {
+                            // Increase fail count
+                            fail++;
+                        }
+                        else
+                        {
+                            // Increase pass count
+                            pass++;
+                        }
                     }
                 }
-            }
-            if (fail > 0)
-            {
-                label21.Text = String.Format("{0}", "FAIL");
-            }
-            // Add Line To graph
-            LineItem curveG = graph.AddCurve("sin", list, Color.Red, SymbolType.Circle);
-            curveG.Line.Width = 1.0f;
+                if (fail > 0)
+                {
+                    label21.Text = String.Format("{0}", "FAIL");
+                }
+                // Add Line To graph
+                LineItem curveG = graph.AddCurve("sin", list, Color.Red, SymbolType.Circle);
+                curveG.Line.Width = 1.0f;
 
-            // Draw
-            zedGraphControl1.AxisChange();
-            zedGraphControl1.Invalidate();
-            zedGraphControl1.Refresh();
-            
-            // Available Save file
-            zedGraphControl1.MasterPane.GetImage().Save("graph.png", System.Drawing.Imaging.ImageFormat.Png);
+                // Draw
+                zedGraphControl1.AxisChange();
+                zedGraphControl1.Invalidate();
+                zedGraphControl1.Refresh();
+
+                // calc. Avg.
+                label21.Text = String.Format("{0}", avg);
+
+                CP = (USL / LSL) / SD;
+                label29.Text = String.Format("{0}", CP);
+
+                k = ((USL + LSL) / (2 - avg)) / ((USL - LSL) / 2);
+                CPK = (1-k) * CP;
+                label29.Text = String.Format("{0}", CP);
+
+                // Available Save file
+                zedGraphControl1.MasterPane.GetImage().Save("graph.png", System.Drawing.Imaging.ImageFormat.Png);
+            }
         }
-
         private void button3_Click(object sender, EventArgs e)
         {
             // Disconnect
             if (sp.IsOpen)
             {
                 sp.Close();
+            }
+            else
+            {
+                // 이미 연결해제되었음.
             }
         }
 
@@ -331,5 +353,6 @@ namespace Peel_tester
                 i = 0;
             }
         }
+
     }
 }
