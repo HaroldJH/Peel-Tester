@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.IO.Ports;
 using System.Diagnostics;
 using ZedGraph;
+using System.Collections.Generic;
 
 namespace Peel_tester
 {
@@ -17,7 +18,9 @@ namespace Peel_tester
     {
         private static SerialPort sp;
         private static SerialCommProcess sc;
-        private Queue queue;
+        private static Queue queue;
+        private static Queue queue1;
+        private static Queue queue2;
         private int[] weightView = new int[5];
         private int[] pullSpeed = new int[3];
         private int i = 0;
@@ -28,9 +31,15 @@ namespace Peel_tester
         private int minV = 0;
         private int maxV = 95;
         private GraphPane graph = null;
+        private static String flag = "NR";
+        private static List<String> reiceivedString;
+        private static Timer timer;
+        private static String heartBeat = "";
 
         public Form1()
         {
+            reiceivedString = new List<string>();
+
             InitializeComponent();
             weightView[0] = 50;
             weightView[1] = 80;
@@ -75,6 +84,10 @@ namespace Peel_tester
 
             curve1 = graph.AddCurve("sin", min, Color.Red, SymbolType.None);
             curve1.Line.Width = 1.0f;
+
+            timer = new Timer();
+            timer.Interval = 1000;
+            timer.Tick += new EventHandler(sendHeartBeat);
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -92,6 +105,13 @@ namespace Peel_tester
                 {
                     sp.Open();
                     queue = sc.getQueue();
+                    queue1 = new Queue();
+                    queue2 = new Queue();
+                    //byte[] bytes = Rs232Utils.ByteArrayToHexString;
+                    timer.Start();
+                    startCommSend();
+                    
+                    startDataSendReiceve();
                     Console.WriteLine("CONNECTED");
                 }
                 catch(SystemException exception)
@@ -101,15 +121,240 @@ namespace Peel_tester
                 }
 
                 // 연결성공시 데이터를 수신한다.
-                sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+                //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
             }
+        }
+
+        public void startDataSendReiceve()
+        {
+            sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived1);
+        }
+
+        public void startCommSend()
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes("ATZ");
+            sp.Write(bytes, 0, bytes.Length);
+
+            // Handler
+            sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+            wait(1);
+
+            bytes = Encoding.UTF8.GetBytes("ATR CAL SEL");
+            sp.Write(bytes, 0, bytes.Length);
+
+            // Calibration 기준
+          //  sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+
+            wait(2);
+
+            bytes = Encoding.UTF8.GetBytes("OK");
+            sp.Write(bytes, 0, bytes.Length);
+
+            if (reiceivedString[1].Equals("CAL SEL 0"))
+            {
+                // Message "Need Calibration value"
+
+            }
+            else
+            {
+                bytes = Encoding.UTF8.GetBytes("ATR CAL 000");
+                sp.Write(bytes, 0, bytes.Length);
+
+                // Calibration value 
+                // sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+
+                wait(3);
+
+                bytes = Encoding.UTF8.GetBytes("OK");
+                sp.Write(bytes, 0, bytes.Length);
+
+                if (!reiceivedString[2].Equals("CAL 000 40"))
+                {
+                    // Need cali. val. 0
+                }
+                else
+                {
+                    bytes = Encoding.UTF8.GetBytes("ATR CAL 020");
+                    sp.Write(bytes, 0, bytes.Length);
+
+                    // Calibration value 
+                    // sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+
+                    wait(4);
+
+                    bytes = Encoding.UTF8.GetBytes("OK");
+                    sp.Write(bytes, 0, bytes.Length);
+
+                    bytes = Encoding.UTF8.GetBytes("ATR CAL 050");
+                    sp.Write(bytes, 0, bytes.Length);
+
+                    // Calibration value 
+                    // sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+
+                    wait(5);
+
+                    bytes = Encoding.UTF8.GetBytes("OK");
+                    sp.Write(bytes, 0, bytes.Length);
+
+                    if (!reiceivedString[4].Equals("CAL 050 500"))
+                    {
+                        // Need Cali. Val. 50
+                    }
+                    else
+                    {
+                        bytes = Encoding.UTF8.GetBytes("ATR CAL 100");
+                        sp.Write(bytes, 0, bytes.Length);
+
+                        wait(6);
+
+                        bytes = Encoding.UTF8.GetBytes("OK");
+                        sp.Write(bytes, 0, bytes.Length);
+
+                        reiceivedString.RemoveRange(0, reiceivedString.Count);
+                    }
+                }
+            }
+        }
+
+        public void startMeasure()
+        {
+            sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived2);
+        }
+
+        public void reqtHost()
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes("ATS X01 10");
+            sp.Write(bytes, 0, bytes.Length);
+
+            // Confirm Received data
+            sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+
+            bytes = Encoding.UTF8.GetBytes("ATS X02 200");
+            sp.Write(bytes, 0, bytes.Length);
+
+            // Confirm Received data
+            //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+
+            // Min. Value
+            bytes = Encoding.UTF8.GetBytes(String.Format("ATS MIN {0}", textBox2.Text));
+            sp.Write(bytes, 0, bytes.Length);
+
+            // Confirm Received data
+           //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+
+            // Max. Value
+            bytes = Encoding.UTF8.GetBytes(String.Format("ATS MAX {0}", textBox1.Text));
+            sp.Write(bytes, 0, bytes.Length);
+
+            // Confirm Received data
+            //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+
+            // Speed
+            bytes = Encoding.UTF8.GetBytes(String.Format("ATS SPD {0}", textBox8.Text));
+            sp.Write(bytes, 0, bytes.Length);
+
+            // Confirm Received data
+            //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+
+            // Start
+            bytes = Encoding.UTF8.GetBytes("ATC SRT");
+            sp.Write(bytes, 0, bytes.Length);
+
+            timer.Stop();
+
+        }
+
+        public void sendHeartBeat(object sender, EventArgs e)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes("ATA");
+            sp.Write(bytes, 0, bytes.Length);
+        }
+
+        public void reqtClient()
+        {
+
         }
 
         private static void dataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            byte bt = (byte)sp.ReadByte();
-            Console.WriteLine(bt);
-            sc.cumulativeData(bt);
+            Console.WriteLine("수신reiceivedString");
+            int size = sp.BytesToRead;
+            byte[] bytes = new byte[size];
+            sp.Read(bytes, 0, size);
+
+            reiceivedString.Add(Encoding.Default.GetString(bytes));
+            Console.WriteLine("size : " + size);
+            
+
+            //sc.cumulativeData(bt);
+        }
+
+        private static void dataReceived1(object sender, SerialDataReceivedEventArgs e)
+        {
+            Console.WriteLine("수신reiceivedString");
+            int size = sp.BytesToRead;
+            byte[] bytes = new byte[size];
+            sp.Read(bytes, 0, size);
+
+            String temp = Encoding.Default.GetString(bytes);
+            String[] data = temp.Split(new String[]{" "}, StringSplitOptions.None);
+
+            queue.Enqueue(data[0]);
+            queue1.Enqueue(data[1]);
+                
+            queue2.Enqueue(data[2]);
+           
+            //sc.cumulativeData(bt);
+        }
+
+        private static void dataReceived2(object sender, SerialDataReceivedEventArgs e)
+        {
+            Console.WriteLine("수신reiceivedString");
+            int size = sp.BytesToRead;
+            byte[] bytes = new byte[size];
+            sp.Read(bytes, 0, size);
+
+            Encoding.Default.GetString(bytes);
+            Console.WriteLine("size : " + size);
+            heartBeat = Encoding.Default.GetString(bytes);
+
+            if(!heartBeat.Equals("OK"))
+            {
+                // Disconnected!
+                sp.Close();
+            }
+        }
+
+        private void wait(int i)
+        {
+            while (true)
+            {
+                Delay(100);
+                if (reiceivedString.Count == i)
+                {
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delay 함수 MS
+        /// </summary>
+        /// <param name="MS">(단위 : MS)
+        /// 
+        private static DateTime Delay(int MS)
+        {
+            DateTime ThisMoment = DateTime.Now;
+            TimeSpan duration = new TimeSpan(0, 0, 0, 0, MS);
+            DateTime AfterWards = ThisMoment.Add(duration);
+
+            while (AfterWards >= ThisMoment)
+            {
+                System.Windows.Forms.Application.DoEvents();
+                ThisMoment = DateTime.Now;
+            }
+
+            return DateTime.Now;
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -202,6 +447,7 @@ namespace Peel_tester
             // Disconnect
             if (sp.IsOpen)
             {
+                timer.Stop();
                 sp.Close();
             }
             else
@@ -352,6 +598,11 @@ namespace Peel_tester
             {
                 i = 0;
             }
+        }
+
+        private void button14_Click(object sender, EventArgs e)
+        {
+            reqtHost();
         }
 
     }

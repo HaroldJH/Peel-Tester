@@ -1,11 +1,13 @@
 ﻿using System;
 using System.IO.Ports;
 using System.Collections;
+using System.Text;
 
 public class SerialCommProcess
 {
 
-    private Queue queue;
+    private Queue queue;  
+    private static SerialPort sp;
 
     public SerialCommProcess()
     {
@@ -14,9 +16,9 @@ public class SerialCommProcess
 
     public SerialPort configureSerialPort()
     {
-        SerialPort sp = new SerialPort();
+        sp = new SerialPort();
         sp.PortName = "COM1";
-        sp.BaudRate = (int)38400;
+        sp.BaudRate = (int)19200;
         sp.DataBits = (int)8;
         sp.Parity = Parity.None;
         sp.StopBits = StopBits.One;
@@ -41,5 +43,13 @@ public class SerialCommProcess
     public void cumulativeData(byte bt)
     {
         queue.Enqueue(bt);
+    }
+
+    public void startCommSend(SerialPort sp)
+    {
+        byte[] bytes = Encoding.UTF8.GetBytes("ATZ");
+        sp.Write(bytes, 0, bytes.Length);
+
+
     }
 }
