@@ -11,6 +11,7 @@ using System.IO.Ports;
 using System.Diagnostics;
 using ZedGraph;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 
 namespace Peel_tester
 {
@@ -34,7 +35,11 @@ namespace Peel_tester
         private static String flag = "NR";
         private static List<String> reiceivedString;
         private static Timer timer;
-        private static String heartBeat = "";
+        private static String reicevedData = "";
+        private static double CAL00 = 140;
+        private static double CAL50 = 650;
+        private static Stopwatch sw;
+        private static int fl = 1;
 
         public Form1()
         {
@@ -52,7 +57,8 @@ namespace Peel_tester
             pullSpeed[2] = 600;
 
             graph = zedGraphControl1.GraphPane;
-            
+            sw = new Stopwatch();
+
             // set title
             graph.Title.Text = "";
 
@@ -108,10 +114,10 @@ namespace Peel_tester
                     queue1 = new Queue();
                     queue2 = new Queue();
                     //byte[] bytes = Rs232Utils.ByteArrayToHexString;
-                    timer.Start();
+                    //timer.Start();
                     startCommSend();
                     
-                    startDataSendReiceve();
+                   // startDataSendReiceve();
                     Console.WriteLine("CONNECTED");
                 }
                 catch(SystemException exception)
@@ -218,7 +224,8 @@ namespace Peel_tester
 
         public void startMeasure()
         {
-            sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived2);
+            fl = 2;
+            //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
         }
 
         public void reqtHost()
@@ -226,12 +233,15 @@ namespace Peel_tester
             byte[] bytes = Encoding.UTF8.GetBytes("ATS X01 10");
             sp.Write(bytes, 0, bytes.Length);
 
+            wait(1);
+
             // Confirm Received data
-            sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+            //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
 
             bytes = Encoding.UTF8.GetBytes("ATS X02 200");
             sp.Write(bytes, 0, bytes.Length);
 
+            wait(2);
             // Confirm Received data
             //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
 
@@ -239,6 +249,7 @@ namespace Peel_tester
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS MIN {0}", textBox2.Text));
             sp.Write(bytes, 0, bytes.Length);
 
+            wait(3);
             // Confirm Received data
            //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
 
@@ -246,6 +257,7 @@ namespace Peel_tester
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS MAX {0}", textBox1.Text));
             sp.Write(bytes, 0, bytes.Length);
 
+            wait(4);
             // Confirm Received data
             //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
 
@@ -253,21 +265,43 @@ namespace Peel_tester
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS SPD {0}", textBox8.Text));
             sp.Write(bytes, 0, bytes.Length);
 
+            wait(5);
             // Confirm Received data
             //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
 
             // Start
             bytes = Encoding.UTF8.GetBytes("ATC SRT");
             sp.Write(bytes, 0, bytes.Length);
+            wait(6);
 
             timer.Stop();
-
+            fl = 2;
         }
 
         public void sendHeartBeat(object sender, EventArgs e)
         {
             byte[] bytes = Encoding.UTF8.GetBytes("ATA");
             sp.Write(bytes, 0, bytes.Length);
+
+            sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+
+            while (true)
+            {
+                sw.Start();
+                Delay(100);
+
+                if (sw.Elapsed.TotalSeconds >= 5)
+                {
+                    // No Anwser
+                    sw.Stop();
+                    break;
+                }
+                if (reicevedData.Equals("OK"))
+                {
+                    sw.Stop();
+                    break;
+                }
+            }
         }
 
         public void reqtClient()
@@ -277,52 +311,76 @@ namespace Peel_tester
 
         private static void dataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            Console.WriteLine("수신reiceivedString");
-            int size = sp.BytesToRead;
-            byte[] bytes = new byte[size];
-            sp.Read(bytes, 0, size);
+            if(fl == 1)
+            {
+               
+                Console.WriteLine("수신");
+                int size = sp.BytesToRead;
+                byte[] bytes = new byte[size];
+                sp.Read(bytes, 0, size);
 
-            reiceivedString.Add(Encoding.Default.GetString(bytes));
-            Console.WriteLine("size : " + size);
-            
+                reiceivedString.Add(Encoding.Default.GetString(bytes));
+                Console.WriteLine("size : " + size);       
+            }
+            else if(fl == 2)
+            {
+                Console.WriteLine("수신1");
+                int size = sp.BytesToRead;
+                Console.Write("크기 " + size);
+                byte[] bytes = new byte[size];
+                sp.Read(bytes, 0, size);
 
+                String temp = Encoding.Default.GetString(bytes);
+                Console.Write("전달값 : " + temp);
+                String[] data = temp.Split(new String[] { " " }, StringSplitOptions.None);
+
+                double calcValue = ((CAL50 - CAL00) / 500) * (double.Parse(data[2]) - CAL00);
+                queue.Enqueue(int.Parse(data[0]));
+                queue1.Enqueue(int.Parse(data[1]));
+
+                queue2.Enqueue(calcValue);
+            }
+            else if(fl == 3)
+            {
+                Console.WriteLine("수신reiceivedString");
+                int size = sp.BytesToRead;
+                byte[] bytes = new byte[size];
+                sp.Read(bytes, 0, size);
+
+                Encoding.Default.GetString(bytes);
+                Console.WriteLine("size : " + size);
+                reicevedData = Encoding.Default.GetString(bytes);
+
+                if (!reicevedData.Equals("OK"))
+                {
+                    // Disconnected!
+                    sp.Close();
+                }
+            }
+
+            if(fl == 4)
+            {
+                int size = sp.BytesToRead;
+                byte[] bytes = new byte[size];
+                sp.Read(bytes, 0, size);
+
+                Encoding.Default.GetString(bytes);
+                Console.WriteLine("size : " + size);
+                reiceivedString.Add(Encoding.Default.GetString(bytes));
+            }
             //sc.cumulativeData(bt);
         }
 
         private static void dataReceived1(object sender, SerialDataReceivedEventArgs e)
         {
-            Console.WriteLine("수신reiceivedString");
-            int size = sp.BytesToRead;
-            byte[] bytes = new byte[size];
-            sp.Read(bytes, 0, size);
-
-            String temp = Encoding.Default.GetString(bytes);
-            String[] data = temp.Split(new String[]{" "}, StringSplitOptions.None);
-
-            queue.Enqueue(data[0]);
-            queue1.Enqueue(data[1]);
-                
-            queue2.Enqueue(data[2]);
+            
            
             //sc.cumulativeData(bt);
         }
 
         private static void dataReceived2(object sender, SerialDataReceivedEventArgs e)
         {
-            Console.WriteLine("수신reiceivedString");
-            int size = sp.BytesToRead;
-            byte[] bytes = new byte[size];
-            sp.Read(bytes, 0, size);
-
-            Encoding.Default.GetString(bytes);
-            Console.WriteLine("size : " + size);
-            heartBeat = Encoding.Default.GetString(bytes);
-
-            if(!heartBeat.Equals("OK"))
-            {
-                // Disconnected!
-                sp.Close();
-            }
+           
         }
 
         private void wait(int i)
@@ -373,12 +431,16 @@ namespace Peel_tester
                 int pass = 0, fail = 0;
                 double sum = 0f, CP = 0f, CPK = 0f, USL = 0f, LSL = 0f, SD = 0, k = 0f, avg = 0f;
                 // Set Coordinate(X,Y) - Temp
-                queue = sc.getQueue();
+                //queue = sc.getQueue();
                 for (int i = 0; i < queue.Count; i++)
                 {
                     //x = (double)i;
-                    x = double.Parse(queue.Dequeue().ToString());
-                    y = Math.Sin((double)i * 0.5) * 8;
+                    x = double.Parse(queue1.Dequeue().ToString());
+                    //y = Math.Sin((double)i * 0.5) * 8;
+                    y = double.Parse(queue2.Dequeue().ToString());
+
+                    Console.Write("X : " + x);
+                    Console.Write("Y : " + y);
                     sum += y;
                     //y = i * sign;
                     list.Add(x, y);
@@ -388,7 +450,7 @@ namespace Peel_tester
                     }
                     else
                         sign = 1;
-
+                    
                     if (textBox1.Text != "" && textBox2.Text != "")
                     {
                         // Max Val. Check.
@@ -439,9 +501,15 @@ namespace Peel_tester
                 label29.Text = String.Format("{0}", CP);
 
                 // Available Save file
-                zedGraphControl1.MasterPane.GetImage().Save("graph.png", System.Drawing.Imaging.ImageFormat.Png);
+                //zedGraphControl1.MasterPane.GetImage().Save("graph.png", System.Drawing.Imaging.ImageFormat.Png);
             }
         }
+
+        private void printGraph(object sender, PrintPageEventArgs e)
+        {
+            e.Graphics.DrawImage(zedGraphControl1.MasterPane.GetImage(), 400, 400);
+        }
+
         private void button3_Click(object sender, EventArgs e)
         {
             // Disconnect
@@ -528,10 +596,10 @@ namespace Peel_tester
             }
 
             curve = graph.AddCurve("sin", max, Color.Red, SymbolType.None);
-            curve1 = graph.AddCurve("sin", min, Color.Red, SymbolType.None);
+            //curve1 = graph.AddCurve("sin", min, Color.Red, SymbolType.None);
 
             curve.Line.Width = 1.0f;
-            curve1.Line.Width = 1.0f;
+            //curve1.Line.Width = 1.0f;
 
             zedGraphControl1.AxisChange();
             zedGraphControl1.Invalidate();
@@ -602,7 +670,30 @@ namespace Peel_tester
 
         private void button14_Click(object sender, EventArgs e)
         {
+            fl = 4;
+            reiceivedString.RemoveRange(0, reiceivedString.Count);
             reqtHost();
+        }
+
+        private void button15_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void printToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            PrintDocument print = new PrintDocument();
+            PageSettings ps = new PageSettings();
+
+            ps.Margins = new Margins(10, 10, 10, 10);
+            print.DefaultPageSettings = ps;
+
+            PrintPreviewDialog pd = new PrintPreviewDialog();
+            pd.ClientSize = new System.Drawing.Size(500, 500);
+            pd.UseAntiAlias = true;
+            print.PrintPage += new PrintPageEventHandler(printGraph);
+            pd.Document = print;
+            pd.Show();
         }
 
     }
