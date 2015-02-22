@@ -17,7 +17,7 @@ public class SerialCommProcess
     public SerialPort configureSerialPort()
     {
         sp = new SerialPort();
-        sp.PortName = "COM1";
+        sp.PortName = "COM3";
         sp.BaudRate = (int)19200;
         sp.DataBits = (int)8;
         sp.Parity = Parity.None;

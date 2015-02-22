@@ -17,11 +17,9 @@ namespace Peel_tester
 {
     public partial class Form1 : Form
     {
-        private static SerialPort sp;
-        private static SerialCommProcess sc;
-        private static Queue queue;
-        private static Queue queue1;
-        private static Queue queue2;
+        private SerialPort sp;
+        private SerialCommProcess sc;
+        private Queue<String> queue;
         private int[] weightView = new int[5];
         private int[] pullSpeed = new int[3];
         private int i = 0;
@@ -32,18 +30,31 @@ namespace Peel_tester
         private int minV = 0;
         private int maxV = 95;
         private GraphPane graph = null;
-        private static String flag = "NR";
-        private static List<String> reiceivedString;
-        private static Timer timer;
-        private static String reicevedData = "";
-        private static double CAL00 = 140;
-        private static double CAL50 = 650;
-        private static Stopwatch sw;
-        private static int fl = 1;
-
+        private String flag = "NR";
+        private List<String> reiceivedString;
+        private Timer timer;
+        private Timer timer2;
+        private String reicevedData = "";
+        private double CAL00 = 140;
+        private double CAL50 = 650;
+        private Stopwatch sw;
+        private int fl = 1;
+        private int hb = 0;
+        private List<int> seq;
+        private List<double> x;
+        private List<double> y;
+        private PointPairList list;
+        private delegate void draw();
+        private int state = 0;
         public Form1()
         {
             reiceivedString = new List<string>();
+            
+            queue = new Queue<String>();
+            seq = new List<int>();
+            x = new List<double>();
+            y = new List<double>();
+            list = new PointPairList();
 
             InitializeComponent();
             weightView[0] = 50;
@@ -85,15 +96,16 @@ namespace Peel_tester
                 max.Add(i, maxV);
             }
 
-            curve = graph.AddCurve("sin", max, Color.Red, SymbolType.None);
+            curve = graph.AddCurve("", max, Color.Red, SymbolType.None);
             curve.Line.Width = 1.0f;
-
-            curve1 = graph.AddCurve("sin", min, Color.Red, SymbolType.None);
-            curve1.Line.Width = 1.0f;
 
             timer = new Timer();
             timer.Interval = 1000;
             timer.Tick += new EventHandler(sendHeartBeat);
+
+            timer2 = new Timer();
+            timer2.Interval = 1000;
+            timer2.Tick += new EventHandler(stateCheck);
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -110,20 +122,22 @@ namespace Peel_tester
                 try
                 {
                     sp.Open();
-                    queue = sc.getQueue();
-                    queue1 = new Queue();
-                    queue2 = new Queue();
-                    //byte[] bytes = Rs232Utils.ByteArrayToHexString;
-                    //timer.Start();
-                    startCommSend();
                     
-                   // startDataSendReiceve();
                     Console.WriteLine("CONNECTED");
+                    state = 1;
+
+                    // Send heart beat
+                    reicevedData = "OK";
+                    //timer.Start();
+                    //timer2.Start();
+                    startCommSend();
                 }
                 catch(SystemException exception)
                 {
                     // 시리얼포트 open실패시 예외처리
                     //throw new se
+                    
+                    MessageBox.Show("연결 상태를 확인하십시오");
                 }
 
                 // 연결성공시 데이터를 수신한다.
@@ -131,149 +145,113 @@ namespace Peel_tester
             }
         }
 
+        private void stateCheck(object sender, EventArgs e)
+        {
+            if(state == 0)
+            {
+                MessageBox.Show("응답이 없습니다. 단말기를 확인하십시오.");
+                sp.Close();
+                timer.Stop();
+                timer2.Stop();
+            }
+        }
+        /*
         public void startDataSendReiceve()
         {
-            sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived1);
+            sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
         }
-
+        */
         public void startCommSend()
         {
-            byte[] bytes = Encoding.UTF8.GetBytes("ATZ");
+            byte[] bytes = Encoding.UTF8.GetBytes("ATZ\n");
             sp.Write(bytes, 0, bytes.Length);
 
             // Handler
             sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
             wait(1);
-
-            bytes = Encoding.UTF8.GetBytes("ATR CAL SEL");
+            Console.WriteLine("version : " + reiceivedString[0]);
+            bytes = Encoding.UTF8.GetBytes("ATR CAL SEL\n");
             sp.Write(bytes, 0, bytes.Length);
-
-            // Calibration 기준
-          //  sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
 
             wait(2);
-
-            bytes = Encoding.UTF8.GetBytes("OK");
+            bytes = Encoding.UTF8.GetBytes("OK\n");
             sp.Write(bytes, 0, bytes.Length);
 
-            if (reiceivedString[1].Equals("CAL SEL 0"))
+            if (reiceivedString[1].Equals("CAL SEL 000\n"))
             {
                 // Message "Need Calibration value"
-
             }
             else
             {
-                bytes = Encoding.UTF8.GetBytes("ATR CAL 000");
+                bytes = Encoding.UTF8.GetBytes("ATR CAL 000\n");
                 sp.Write(bytes, 0, bytes.Length);
-
-                // Calibration value 
-                // sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
 
                 wait(3);
 
-                bytes = Encoding.UTF8.GetBytes("OK");
+                bytes = Encoding.UTF8.GetBytes("OK\n");
                 sp.Write(bytes, 0, bytes.Length);
-
-                if (!reiceivedString[2].Equals("CAL 000 40"))
+                Console.WriteLine("CALI " + reiceivedString[1]);
+                if (reiceivedString[1].Equals("CAL SEL 1"))
                 {
-                    // Need cali. val. 0
+                    bytes = Encoding.UTF8.GetBytes("ATR CAL 020\n");
                 }
-                else
+                else if (reiceivedString[1].Equals("CAL SEL 2"))
                 {
-                    bytes = Encoding.UTF8.GetBytes("ATR CAL 020");
-                    sp.Write(bytes, 0, bytes.Length);
-
-                    // Calibration value 
-                    // sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
-
-                    wait(4);
-
-                    bytes = Encoding.UTF8.GetBytes("OK");
-                    sp.Write(bytes, 0, bytes.Length);
-
-                    bytes = Encoding.UTF8.GetBytes("ATR CAL 050");
-                    sp.Write(bytes, 0, bytes.Length);
-
-                    // Calibration value 
-                    // sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
-
-                    wait(5);
-
-                    bytes = Encoding.UTF8.GetBytes("OK");
-                    sp.Write(bytes, 0, bytes.Length);
-
-                    if (!reiceivedString[4].Equals("CAL 050 500"))
-                    {
-                        // Need Cali. Val. 50
-                    }
-                    else
-                    {
-                        bytes = Encoding.UTF8.GetBytes("ATR CAL 100");
-                        sp.Write(bytes, 0, bytes.Length);
-
-                        wait(6);
-
-                        bytes = Encoding.UTF8.GetBytes("OK");
-                        sp.Write(bytes, 0, bytes.Length);
-
-                        reiceivedString.RemoveRange(0, reiceivedString.Count);
-                    }
+                    bytes = Encoding.UTF8.GetBytes("ATR CAL 050\n");
                 }
+                else if (reiceivedString[1].Equals("CAL SEL 3"))
+                {
+                    bytes = Encoding.UTF8.GetBytes("ATR CAL 100\n");
+                }
+                sp.Write(bytes, 0, bytes.Length);
+                wait(4);
+                bytes = Encoding.UTF8.GetBytes("OK\n");
+                sp.Write(bytes, 0, bytes.Length);
             }
         }
 
         public void startMeasure()
         {
             fl = 2;
-            //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
-        }
+         }
 
         public void reqtHost()
         {
-            byte[] bytes = Encoding.UTF8.GetBytes("ATS X01 10");
+            byte[] bytes = Encoding.UTF8.GetBytes("ATS X01 10\n");
             sp.Write(bytes, 0, bytes.Length);
 
+            reiceivedString.RemoveRange(0, reiceivedString.Count);
             wait(1);
 
-            // Confirm Received data
-            //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
-
-            bytes = Encoding.UTF8.GetBytes("ATS X02 200");
+            bytes = Encoding.UTF8.GetBytes("ATS X02 200\n");
             sp.Write(bytes, 0, bytes.Length);
 
             wait(2);
-            // Confirm Received data
-            //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
-
+            
             // Min. Value
-            bytes = Encoding.UTF8.GetBytes(String.Format("ATS MIN {0}", textBox2.Text));
+            bytes = Encoding.UTF8.GetBytes(String.Format("ATS MIN {0}\n", textBox2.Text));
             sp.Write(bytes, 0, bytes.Length);
 
             wait(3);
-            // Confirm Received data
-           //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
-
+           
             // Max. Value
-            bytes = Encoding.UTF8.GetBytes(String.Format("ATS MAX {0}", textBox1.Text));
+            bytes = Encoding.UTF8.GetBytes(String.Format("ATS MAX {0}\n", textBox1.Text));
             sp.Write(bytes, 0, bytes.Length);
 
             wait(4);
-            // Confirm Received data
-            //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
-
+           
             // Speed
-            bytes = Encoding.UTF8.GetBytes(String.Format("ATS SPD {0}", textBox8.Text));
+            bytes = Encoding.UTF8.GetBytes(String.Format("ATS SPD {0}\n", textBox8.Text));
             sp.Write(bytes, 0, bytes.Length);
 
             wait(5);
-            // Confirm Received data
-            //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
-
+           
             // Start
-            bytes = Encoding.UTF8.GetBytes("ATC SRT");
+            bytes = Encoding.UTF8.GetBytes("ATC SRT\n");
             sp.Write(bytes, 0, bytes.Length);
             wait(6);
 
+            queue.Clear();
             timer.Stop();
             fl = 2;
         }
@@ -281,10 +259,27 @@ namespace Peel_tester
         public void sendHeartBeat(object sender, EventArgs e)
         {
             byte[] bytes = Encoding.UTF8.GetBytes("ATA");
-            sp.Write(bytes, 0, bytes.Length);
+            int tempFl = fl;
+     
+            fl = 3;
+            switch(hb)
+            {
+                // If hb is 0, send "ATA"
+                case 0:
+                    {
+                        if(reicevedData.Equals("OK"))
+                        {
+                            sp.Write(bytes, 0, bytes.Length);
+                            reicevedData = "";
+                        }
+                        break;
+                    }
 
-            sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
-
+                // If hb isn't 0, Not work
+                default :
+                    break;
+            }
+            
             while (true)
             {
                 sw.Start();
@@ -294,6 +289,10 @@ namespace Peel_tester
                 {
                     // No Anwser
                     sw.Stop();
+                    sp.Close();
+                    //MessageBox.Show("응답이 없습니다. 단말기 상태를 확인하여주십시오.");
+                    //timer.Stop();
+                    state = 0;
                     break;
                 }
                 if (reicevedData.Equals("OK"))
@@ -302,85 +301,173 @@ namespace Peel_tester
                     break;
                 }
             }
+            fl = tempFl;
         }
 
         public void reqtClient()
         {
+            byte[] bytes = Encoding.UTF8.GetBytes("ATS X01 10\n");
+            sp.Write(bytes, 0, bytes.Length);
 
+            wait(1);
+
+            bytes = Encoding.UTF8.GetBytes("ATS X02 200\n");
+            sp.Write(bytes, 0, bytes.Length);
+
+            wait(2);
+
+            bytes = Encoding.UTF8.GetBytes("ATS X01 10\n");
+            sp.Write(bytes, 0, bytes.Length);
+
+            wait(3);
+
+            // Min. Value
+            bytes = Encoding.UTF8.GetBytes(String.Format("ATS MIN {0}\n", textBox2.Text));
+            sp.Write(bytes, 0, bytes.Length);
+
+            wait(4);
+
+            // Max. Value
+            bytes = Encoding.UTF8.GetBytes(String.Format("ATS MAX {0}\n", textBox1.Text));
+            sp.Write(bytes, 0, bytes.Length);
+
+            wait(5);
+
+            // Speed
+            bytes = Encoding.UTF8.GetBytes(String.Format("ATS SPD {0}\n", textBox8.Text));
+            sp.Write(bytes, 0, bytes.Length);
+
+            wait(6);
+
+            bytes = Encoding.UTF8.GetBytes("ATC SRT\n");
+            sp.Write(bytes, 0, bytes.Length);
+
+            fl = 2;
         }
 
-        private static void dataReceived(object sender, SerialDataReceivedEventArgs e)
+        private void dataReceived(object sender, SerialDataReceivedEventArgs e)
         {
+            Console.WriteLine("fl = " + fl);
             if(fl == 1)
             {
-               
+               // start data reiceive
                 Console.WriteLine("수신");
                 int size = sp.BytesToRead;
                 byte[] bytes = new byte[size];
                 sp.Read(bytes, 0, size);
-
-                reiceivedString.Add(Encoding.Default.GetString(bytes));
-                Console.WriteLine("size : " + size);       
+                
+                String recStr = Encoding.Default.GetString(bytes);
+                String tempStr = orgData(recStr);
+                /* 설정값.... */
+                Console.WriteLine("DATA IS " + tempStr);
+                if(!tempStr.Equals(""))
+                {
+                    reiceivedString.Add(tempStr);
+                }
+                if (tempStr.Equals("BTN START"))
+                {
+                    reqtClient();
+                }
             }
             else if(fl == 2)
             {
-                Console.WriteLine("수신1");
+                // start measure
                 int size = sp.BytesToRead;
-                Console.Write("크기 " + size);
                 byte[] bytes = new byte[size];
                 sp.Read(bytes, 0, size);
 
-                String temp = Encoding.Default.GetString(bytes);
-                Console.Write("전달값 : " + temp);
-                String[] data = temp.Split(new String[] { " " }, StringSplitOptions.None);
+                String recStr = Encoding.Default.GetString(bytes);
+                String tempStr = orgData(recStr);
+                Console.WriteLine("값 : " + tempStr);
+                if (!tempStr.Equals("BTN PAUSE") && !tempStr.Equals("") && !tempStr.Equals("BTN RESUME") && !tempStr.Equals("BTN RESET") && !tempStr.Equals("END"))
+                {
+                    String[] data = tempStr.Split(new String[] { " " }, StringSplitOptions.None);
 
-                double calcValue = ((CAL50 - CAL00) / 500) * (double.Parse(data[2]) - CAL00);
-                queue.Enqueue(int.Parse(data[0]));
-                queue1.Enqueue(int.Parse(data[1]));
+                    
+                    double calcValue = ((CAL50 - CAL00) / 500) * (double.Parse(data[2]) - CAL00);
+                    seq.Add(int.Parse(data[0]));
+                    x.Add(int.Parse(data[1])/10.0f);
+                    y.Add(calcValue);
+                    //drawing();
+                    this.Invoke(new draw(drawing), null);
+                }
 
-                queue2.Enqueue(calcValue);
+                else if(tempStr.Equals("END"))
+                {
+                    bytes = Encoding.UTF8.GetBytes("OK");
+                    sp.Write(bytes, 0, bytes.Length);
+
+                    bytes = Encoding.UTF8.GetBytes("ATD MIN 155");
+                    sp.Write(bytes, 0, bytes.Length);
+
+                    bytes = Encoding.UTF8.GetBytes("ATD MAX 2051");
+                    sp.Write(bytes, 0, bytes.Length);
+
+                    bytes = Encoding.UTF8.GetBytes("ATD AVG 1052");
+                    sp.Write(bytes, 0, bytes.Length);
+
+                    bytes = Encoding.UTF8.GetBytes("ATD STD 101");
+                    sp.Write(bytes, 0, bytes.Length);
+                }
             }
             else if(fl == 3)
             {
-                Console.WriteLine("수신reiceivedString");
                 int size = sp.BytesToRead;
                 byte[] bytes = new byte[size];
                 sp.Read(bytes, 0, size);
 
-                Encoding.Default.GetString(bytes);
-                Console.WriteLine("size : " + size);
-                reicevedData = Encoding.Default.GetString(bytes);
-
-                if (!reicevedData.Equals("OK"))
-                {
-                    // Disconnected!
-                    sp.Close();
-                }
+                String recStr = Encoding.Default.GetString(bytes);
+                reicevedData = orgData(recStr);
             }
 
             if(fl == 4)
             {
+                // Request Host
                 int size = sp.BytesToRead;
                 byte[] bytes = new byte[size];
                 sp.Read(bytes, 0, size);
 
-                Encoding.Default.GetString(bytes);
-                Console.WriteLine("size : " + size);
+                String recStr = Encoding.Default.GetString(bytes);
+                String tempStr = orgData(recStr);
+
                 reiceivedString.Add(Encoding.Default.GetString(bytes));
             }
-            //sc.cumulativeData(bt);
         }
 
-        private static void dataReceived1(object sender, SerialDataReceivedEventArgs e)
+        private String orgData(String recStr)
         {
-            
-           
-            //sc.cumulativeData(bt);
-        }
-
-        private static void dataReceived2(object sender, SerialDataReceivedEventArgs e)
-        {
-           
+            Console.WriteLine("PARAMETER : "+recStr);
+            String tempStr = "";
+            if (recStr.IndexOf("\n") == -1)
+            {
+                // '\n'이 수신될 때까지 큐에 누적한다.
+                Console.WriteLine("index : " +recStr.IndexOf("\n"));
+                queue.Enqueue(recStr);
+            }
+            else
+            {
+                // '\n'이 수신된경우 \n이전 이전문자열은 큐에서 꺼낸 기존문자열과 조합. 이후문자열은 다시 큐에 누적.
+                String[] tempStrArr = recStr.Split(new String[] { "\n" }, StringSplitOptions.None);
+               
+                for (int i = 0; i < queue.Count; i++)
+                {
+                    Console.WriteLine("CNT : " + queue.Count);
+                    String test = queue.Dequeue();
+                    tempStr += test;
+                    Console.WriteLine("test value : " + test);
+                }
+                tempStr += tempStrArr[0];
+                if (tempStrArr[1].IndexOf("\n") != tempStrArr[1].Count() - 1 && tempStrArr[1].IndexOf("\n") == -1 && tempStrArr[1].Count() != 14)
+                {
+                    queue.Enqueue(tempStrArr[1]);
+                }
+                else if(tempStrArr[1].IndexOf("\n") != -1)
+                {
+                    //tempStr += "\n"+tempStrArr[1];
+                }
+            }
+            Console.WriteLine("return Value : " + tempStr);
+            return tempStr;
         }
 
         private void wait(int i)
@@ -400,7 +487,7 @@ namespace Peel_tester
         /// </summary>
         /// <param name="MS">(단위 : MS)
         /// 
-        private static DateTime Delay(int MS)
+        private DateTime Delay(int MS)
         {
             DateTime ThisMoment = DateTime.Now;
             TimeSpan duration = new TimeSpan(0, 0, 0, 0, MS);
@@ -423,86 +510,80 @@ namespace Peel_tester
             }
             else
             {
-                // Draw Graph
-                double x, y = 0.0f, sign = 1;
-                graph = zedGraphControl1.GraphPane;
-                PointPairList list = new PointPairList();
+            }
+        }
 
-                int pass = 0, fail = 0;
-                double sum = 0f, CP = 0f, CPK = 0f, USL = 0f, LSL = 0f, SD = 0, k = 0f, avg = 0f;
-                // Set Coordinate(X,Y) - Temp
-                //queue = sc.getQueue();
-                for (int i = 0; i < queue.Count; i++)
+        private void drawing()
+        {
+            list.Clear();
+            //zedGraphControl1.GraphPane.CurveList.Clear();
+            
+            // Draw Graph
+            double x, y = 0.0f;
+            graph = zedGraphControl1.GraphPane;
+      
+            int pass = 0, fail = 0;
+            double sum = 0f, CP = 0f, CPK = 0f, USL = 0f, LSL = 0f, SD = 0, k = 0f, avg = 0f;
+            
+            for (int i = 0; i < seq.Count; i++)
+            {
+                x = this.x[i];
+                y = this.y[i];
+
+                sum += y;
+                list.Add(x, y);
+                
+                if (textBox1.Text != "" && textBox2.Text != "")
                 {
-                    //x = (double)i;
-                    x = double.Parse(queue1.Dequeue().ToString());
-                    //y = Math.Sin((double)i * 0.5) * 8;
-                    y = double.Parse(queue2.Dequeue().ToString());
-
-                    Console.Write("X : " + x);
-                    Console.Write("Y : " + y);
-                    sum += y;
-                    //y = i * sign;
-                    list.Add(x, y);
-                    if (i % 2 == 0)
+                    // Max Val. Check.
+                    if (y > double.Parse(textBox1.Text))
                     {
-                        //sign = -1;
+                        // Increase fail count
+                        fail++;
                     }
                     else
-                        sign = 1;
-                    
-                    if (textBox1.Text != "" && textBox2.Text != "")
                     {
-                        // Max Val. Check.
-                        if (y > double.Parse(textBox1.Text))
-                        {
-                            // Increase fail count
-                            fail++;
-                        }
-                        else
-                        {
-                            // Increase pass count
-                            pass++;
-                        }
-                        // Min Val. Check
-                        if (y > double.Parse(textBox2.Text))
-                        {
-                            // Increase fail count
-                            fail++;
-                        }
-                        else
-                        {
-                            // Increase pass count
-                            pass++;
-                        }
+                        // Increase pass count
+                        pass++;
+                    }
+                    // Min Val. Check
+                    if (y > double.Parse(textBox2.Text))
+                    {
+                        // Increase fail count
+                        fail++;
+                    }
+                    else
+                    {
+                        // Increase pass count
+                        pass++;
                     }
                 }
-                if (fail > 0)
-                {
-                    label21.Text = String.Format("{0}", "FAIL");
-                }
-                // Add Line To graph
-                LineItem curveG = graph.AddCurve("sin", list, Color.Red, SymbolType.Circle);
-                curveG.Line.Width = 1.0f;
-
-                // Draw
-                zedGraphControl1.AxisChange();
-                zedGraphControl1.Invalidate();
-                zedGraphControl1.Refresh();
-
-                // calc. Avg.
-                label21.Text = String.Format("{0}", avg);
-
-                CP = (USL / LSL) / SD;
-                label29.Text = String.Format("{0}", CP);
-
-                k = ((USL + LSL) / (2 - avg)) / ((USL - LSL) / 2);
-                CPK = (1-k) * CP;
-                label29.Text = String.Format("{0}", CP);
-
-                // Available Save file
-                //zedGraphControl1.MasterPane.GetImage().Save("graph.png", System.Drawing.Imaging.ImageFormat.Png);
             }
+            if (fail > 0)
+            {
+                label21.Text = String.Format("{0}", "FAIL");
+            }
+            // Add Line To graph
+            LineItem curveG = graph.AddCurve("", list, Color.Red, SymbolType.None);
+            curveG.Line.Width = 1.0f;
+
+            // Draw
+            zedGraphControl1.AxisChange();
+            zedGraphControl1.Invalidate();
+            zedGraphControl1.Refresh();
+
+            // calc. Avg.
+            label21.Text = String.Format("{0}", avg);
+
+            CP = (USL / LSL) / SD;
+            label29.Text = String.Format("{0}", CP);
+
+            k = ((USL + LSL) / (2 - avg)) / ((USL - LSL) / 2);
+            CPK = (1 - k) * CP;
+            label29.Text = String.Format("{0}", CP);
+
+            // Available Save file
+            //zedGraphControl1.MasterPane.GetImage().Save("graph.png", System.Drawing.Imaging.ImageFormat.Png);
         }
 
         private void printGraph(object sender, PrintPageEventArgs e)
@@ -540,6 +621,7 @@ namespace Peel_tester
         private void button7_Click(object sender, EventArgs e)
         {
             maxV++;
+            textBox1.Text = String.Format("{0}", maxV);
             zedGraphControl1.GraphPane.CurveList.Clear();
             max.Clear();
             
@@ -549,8 +631,8 @@ namespace Peel_tester
                 max.Add(i, maxV);
             }
             
-            curve = graph.AddCurve("sin", max, Color.Red, SymbolType.None);
-            curve1 = graph.AddCurve("sin", min, Color.Red, SymbolType.None);
+            curve = graph.AddCurve("", max, Color.Red, SymbolType.None);
+            curve1 = graph.AddCurve("", min, Color.Red, SymbolType.None);
 
             curve.Line.Width = 1.0f;
             curve1.Line.Width = 1.0f;
@@ -563,6 +645,7 @@ namespace Peel_tester
         private void button8_Click(object sender, EventArgs e)
         {
             maxV--;
+            textBox1.Text = String.Format("{0}", maxV);
             zedGraphControl1.GraphPane.CurveList.Clear();
             max.Clear();
 
@@ -572,8 +655,8 @@ namespace Peel_tester
                 max.Add(i, maxV);
             }
 
-            curve = graph.AddCurve("sin", max, Color.Red, SymbolType.None);
-            curve1 = graph.AddCurve("sin", min, Color.Red, SymbolType.None);
+            curve = graph.AddCurve("", max, Color.Red, SymbolType.None);
+            curve1 = graph.AddCurve("", min, Color.Red, SymbolType.None);
 
             curve.Line.Width = 1.0f;
             curve1.Line.Width = 1.0f;
@@ -586,6 +669,7 @@ namespace Peel_tester
         private void button9_Click(object sender, EventArgs e)
         {
             minV++;
+            textBox2.Text = String.Format("{0}", minV);
             zedGraphControl1.GraphPane.CurveList.Clear();
             min.Clear();
 
@@ -595,11 +679,11 @@ namespace Peel_tester
                 max.Add(i, maxV);
             }
 
-            curve = graph.AddCurve("sin", max, Color.Red, SymbolType.None);
-            //curve1 = graph.AddCurve("sin", min, Color.Red, SymbolType.None);
+            curve = graph.AddCurve("", max, Color.Red, SymbolType.None);
+            curve1 = graph.AddCurve("", min, Color.Red, SymbolType.None);
 
             curve.Line.Width = 1.0f;
-            //curve1.Line.Width = 1.0f;
+            curve1.Line.Width = 1.0f;
 
             zedGraphControl1.AxisChange();
             zedGraphControl1.Invalidate();
@@ -609,6 +693,7 @@ namespace Peel_tester
         private void button10_Click(object sender, EventArgs e)
         {
             minV--;
+            textBox2.Text = String.Format("{0}", minV);
             zedGraphControl1.GraphPane.CurveList.Clear();
             min.Clear();
 
@@ -618,8 +703,8 @@ namespace Peel_tester
                 max.Add(i, maxV);
             }
 
-            curve = graph.AddCurve("sin", max, Color.Red, SymbolType.None);
-            curve1 = graph.AddCurve("sin", min, Color.Red, SymbolType.None);
+            curve = graph.AddCurve("", max, Color.Red, SymbolType.None);
+            curve1 = graph.AddCurve("", min, Color.Red, SymbolType.None);
 
             curve.Line.Width = 1.0f;
             curve1.Line.Width = 1.0f;
@@ -671,7 +756,7 @@ namespace Peel_tester
         private void button14_Click(object sender, EventArgs e)
         {
             fl = 4;
-            reiceivedString.RemoveRange(0, reiceivedString.Count);
+            queue.Clear();
             reqtHost();
         }
 
@@ -696,5 +781,9 @@ namespace Peel_tester
             pd.Show();
         }
 
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
