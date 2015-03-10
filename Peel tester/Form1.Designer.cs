@@ -108,13 +108,17 @@ namespace Peel_tester
             this.numericUpDown4 = new System.Windows.Forms.NumericUpDown();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
+            this.ssToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.calibrationToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.startToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.weight50gToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown4)).BeginInit();
             this.SuspendLayout();
-            /*
+
             FileProcess fp = new FileProcess();
             String readStr = fp.read(Directory.GetCurrentDirectory() + "/userInfo/userInfo.csv");
             if (!readStr.Equals(""))
@@ -144,8 +148,6 @@ namespace Peel_tester
                     comboBox1.Text = str[18];
                 }
             }
-             * */
-
             // 
             // zedGraphControl1
             // 
@@ -621,41 +623,45 @@ namespace Peel_tester
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+N";
             this.fileToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
             this.fileToolStripMenuItem.Text = "New";
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.excelSaveToolStripMenuItem_Click);
             // 
             // excelSaveToolStripMenuItem
             // 
             this.excelSaveToolStripMenuItem.Name = "excelSaveToolStripMenuItem";
-            this.excelSaveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.excelSaveToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
             this.excelSaveToolStripMenuItem.Text = "Excel Save";
             this.excelSaveToolStripMenuItem.Click += new System.EventHandler(this.excelSaveToolStripMenuItem_Click);
             // 
             // printToolStripMenuItem
             // 
             this.printToolStripMenuItem.Name = "printToolStripMenuItem";
-            this.printToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.printToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
             this.printToolStripMenuItem.Text = "Print";
             this.printToolStripMenuItem.Click += new System.EventHandler(this.printToolStripMenuItem_Click);
             // 
             // setupToolStripMenuItem
             // 
+            this.setupToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ssToolStripMenuItem,
+            this.calibrationToolStripMenuItem1});
             this.setupToolStripMenuItem.Name = "setupToolStripMenuItem";
-            this.setupToolStripMenuItem.Size = new System.Drawing.Size(12, 20);
+            this.setupToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
+            this.setupToolStripMenuItem.Text = "Setup";
             // 
             // helpToolStripMenuItem
             // 
@@ -788,6 +794,34 @@ namespace Peel_tester
             this.button2.Text = "button2";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click_1);
+            // 
+            // ssToolStripMenuItem
+            // 
+            this.ssToolStripMenuItem.Name = "ssToolStripMenuItem";
+            this.ssToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
+            this.ssToolStripMenuItem.Text = "Adjust zero point";
+            // 
+            // calibrationToolStripMenuItem1
+            // 
+            this.calibrationToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.startToolStripMenuItem,
+            this.weight50gToolStripMenuItem});
+            this.calibrationToolStripMenuItem1.Name = "calibrationToolStripMenuItem1";
+            this.calibrationToolStripMenuItem1.Size = new System.Drawing.Size(167, 22);
+            this.calibrationToolStripMenuItem1.Text = "Calibration";
+            // 
+            // startToolStripMenuItem
+            // 
+            this.startToolStripMenuItem.Name = "startToolStripMenuItem";
+            this.startToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.startToolStripMenuItem.Text = "Start";
+            // 
+            // weight50gToolStripMenuItem
+            // 
+            this.weight50gToolStripMenuItem.Name = "weight50gToolStripMenuItem";
+            this.weight50gToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.weight50gToolStripMenuItem.Text = "Weight 50g";
+            this.weight50gToolStripMenuItem.Click += new System.EventHandler(this.calibration50gToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -949,6 +983,10 @@ namespace Peel_tester
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.ToolStripMenuItem ssToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem calibrationToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem startToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem weight50gToolStripMenuItem;
 
         //private System.Collections.Queue queue;
     }
