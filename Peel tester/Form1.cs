@@ -868,10 +868,16 @@ namespace Peel_tester
         {
             fl = 4;
             queue.Clear();
-
-            if (sp.IsOpen)
+            if (sp != null)
             {
-                reqtHost();
+                if (sp.IsOpen)
+                {
+                    reqtHost();
+                }
+                else
+                {
+                    MessageBox.Show("연결되지 않은 상태입니다.");
+                }
             }
             else
             {
@@ -1123,8 +1129,14 @@ namespace Peel_tester
 
         private void calibration50gToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes("ATS CAL 050 940\n");
-            sp.Write(bytes, 0, bytes.Length);
+            if (sp != null) 
+            { 
+                if(sp.IsOpen)
+                { 
+                    byte[] bytes = Encoding.UTF8.GetBytes("ATS CAL 050 940\n");
+                    sp.Write(bytes, 0, bytes.Length);
+                }
+            }
         }
 
         private void inputX1Value(object sender, KeyEventArgs e)
@@ -1422,14 +1434,26 @@ namespace Peel_tester
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATC RSM\n", std));
-            sp.Write(bytes, 0, bytes.Length);
+            if (sp != null)
+            {
+                if (sp.IsOpen)
+                {
+                    byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATC RSM\n", std));
+                    sp.Write(bytes, 0, bytes.Length);
+                }
+            }
         }
 
         private void button2_Click_1(object sender, EventArgs e)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATC RST\n", std));
-            sp.Write(bytes, 0, bytes.Length);
+            if (sp != null)
+            {
+                if (sp.IsOpen)
+                {
+                    byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATC RST\n", std));
+                    sp.Write(bytes, 0, bytes.Length);
+                }
+            }
         }
 
         private void fileToolStripMenuItem_Click(object sender, EventArgs e)
