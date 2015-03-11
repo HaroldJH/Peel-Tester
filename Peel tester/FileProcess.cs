@@ -18,7 +18,7 @@ public class FileProcess
         try
         {
             fis = new FileStream(dir, FileMode.Open);
-            sr = new StreamReader(fis, System.Text.Encoding.UTF8);
+            sr = new StreamReader(fis, System.Text.Encoding.Default);
             
             sr.BaseStream.Seek(0, SeekOrigin.Begin);
             while (sr.Peek() > -1)
@@ -58,12 +58,13 @@ public class FileProcess
             FileInfo fileInfo = new FileInfo(dir + fileName);
             if (!fileInfo.Exists)
             {
-                fileInfo.Create();
+                ois = new FileStream(fileName, FileMode.OpenOrCreate);
             }
-            
-            ois = new FileStream(dir + fileName, FileMode.Open);
-
-            byte[] bytes = Encoding.UTF8.GetBytes(str);
+            else
+            { 
+                ois = new FileStream(dir + fileName, FileMode.Open);
+            }
+            byte[] bytes = Encoding.Default.GetBytes(str);
             ois.Write(bytes, 0, bytes.Length);
         }
         catch(IOException ie)
@@ -86,12 +87,14 @@ public class FileProcess
             FileInfo fileInfo = new FileInfo(fileName);
             if (!fileInfo.Exists)
             {
-                fileInfo.Create();
+                ois = new FileStream(fileName, FileMode.OpenOrCreate);
             }
-            Console.WriteLine("FILE : " + fileInfo.FullName);
-            ois = new FileStream(fileName, FileMode.Open);
-
-            byte[] bytes = Encoding.UTF8.GetBytes(str);
+            //Console.WriteLine("FILE : " + fileInfo.FullName.Substring(fileInfo.Directory.ToString().Length+1, fileInfo.FullName.Length - fileInfo.Directory.ToString().Length-1));
+            else
+            { 
+                ois = new FileStream(fileName, FileMode.Open);
+            }
+            byte[] bytes = Encoding.Default.GetBytes(str);
             ois.Write(bytes, 0, bytes.Length);
         }
         catch (IOException ie)

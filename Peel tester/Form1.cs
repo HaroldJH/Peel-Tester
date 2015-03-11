@@ -437,6 +437,26 @@ namespace Peel_tester
 
                 else if (tempStr.Equals("END"))
                 {
+                    PointPairList pp = new PointPairList();
+                    pp.Add(100, 100);
+                    
+                    LineItem myCurve = graph.AddCurve("Gas Data", pp, Color.Red,
+                        SymbolType.Diamond);
+                    myCurve.Symbol.Size = 12;
+                    // Set up a red-blue color gradient to be used for the fill
+                    myCurve.Symbol.Fill = new Fill(Color.Red, Color.Blue);
+                    // Turn off the symbol borders
+                    myCurve.Symbol.Border.IsVisible = false;
+                    // Instruct ZedGraph to fill the symbols by selecting a color out of the
+                    // red-blue gradient based on the Z value.  A value of 19 or less will be red,
+                    // a value of 34 or more will be blue, and values in between will be a
+                    // linearly apportioned color between red and blue.
+                    myCurve.Symbol.Fill.Type = FillType.GradientByZ;
+                    myCurve.Symbol.Fill.RangeMin = 19;
+                    myCurve.Symbol.Fill.RangeMax = 34;
+                    // Turn off the line, so the curve will by symbols only
+                    myCurve.Line.IsVisible = false;
+
                     bytes = Encoding.UTF8.GetBytes("OK\n");
                     sp.Write(bytes, 0, bytes.Length);
 
@@ -657,12 +677,13 @@ namespace Peel_tester
             graph = zedGraphControl1.GraphPane;
 
             double sum = 0f, CP = 0f, CPK = 0f, USL = 0f, LSL = 0f, SD = 0, k = 0f, avg = 0f;
-
+            Console.WriteLine("CNT : " + seq.Count);
             for (int i = 0; i < seq.Count; i++)
             {
                 x = this.x[i];
                 y = this.y[i];
-
+                Console.WriteLine("X : " + x);
+                Console.WriteLine("Y : " + y);
                 sum += y;
                 list.Add(x, y);
 
@@ -943,6 +964,11 @@ namespace Peel_tester
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
+            saveUserInfo();
+        }
+
+        private void saveUserInfo()
+        {
             FileProcess fp = new FileProcess();
             StringBuilder sb = new StringBuilder("");
 
@@ -1044,11 +1070,13 @@ namespace Peel_tester
             if (sd.ShowDialog() == DialogResult.OK)
             {
                 wb.SaveAs(sd.FileName, Excel.XlFileFormat.xlWorkbookNormal);
+
+                excel.Quit();
+                
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(excel);
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(wb);
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(ws);
 
-                excel.Quit();
                 excel = null;
                 wb = null;
                 ws = null;
@@ -1309,13 +1337,14 @@ namespace Peel_tester
                         label30.Text = str[27];
                         if (!str[19].Equals(""))
                         {
+                            Console.WriteLine("테스트문자열 : " + str[19]);
                             String[] temp = str[19].Split(new String[] { "|" }, StringSplitOptions.None);
                             for (int i = 0; i < temp.Count(); i++)
                             {
                                 String[] temp2 = temp[i].Split(new String[] { ";" }, StringSplitOptions.None);
-
+                                
                                 seq.Add(int.Parse(temp2[0]));
-                                x.Add(double.Parse(temp2[1]) / 10);
+                                x.Add(double.Parse(temp2[1]));
                                 y.Add(double.Parse(temp2[2]));
                             }
                             drawing();
@@ -1394,13 +1423,15 @@ namespace Peel_tester
                 sb.Append(",");
                 for (int i = 0; i < seq.Count; i++)
                 {
-                    sb.Append("|");
                     sb.Append(seq[i]);
                     sb.Append(";");
                     sb.Append(x[i]);
                     sb.Append(";");
                     sb.Append(y[i]);
-                    sb.Append(";");
+                    if(i < seq.Count-1)
+                    {
+                        sb.Append("|");
+                    }
                 }
                 sb.Append(",");
                 sb.Append(label31.Text);
@@ -1421,6 +1452,7 @@ namespace Peel_tester
                 sb.Append(",");
                 sb.Append(label30.Text);
                 Console.WriteLine("출력문자열 : " + sb.ToString());
+                Console.WriteLine("파일출력 테스트 : " + sd.FileName);
                 fp.write(sb.ToString(), sd.FileName);
             }
         }
@@ -1488,6 +1520,13 @@ namespace Peel_tester
             label35.Text = "";
             label29.Text = "";
             label30.Text = "";
+        }
+
+        private void closingEvent(object sender, FormClosingEventArgs e)
+        {
+            saveUserInfo();
+            sp.DataReceived -= new SerialDataReceivedEventHandler(dataReceived);
+            sp.Close();
         }
     }
 }

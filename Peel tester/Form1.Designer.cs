@@ -93,6 +93,10 @@ namespace Peel_tester
             this.excelSaveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.printToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ssToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.calibrationToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.startToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.weight50gToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.adjustZeroPointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.calibrationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -108,16 +112,13 @@ namespace Peel_tester
             this.numericUpDown4 = new System.Windows.Forms.NumericUpDown();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
-            this.ssToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.calibrationToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.startToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.weight50gToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown4)).BeginInit();
             this.SuspendLayout();
+
 
             FileProcess fp = new FileProcess();
             String readStr = fp.read(Directory.GetCurrentDirectory() + "/userInfo/userInfo.csv");
@@ -638,7 +639,7 @@ namespace Peel_tester
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
             this.saveToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
             this.saveToolStripMenuItem.Text = "Save";
-            this.saveToolStripMenuItem.Click += new System.EventHandler(this.excelSaveToolStripMenuItem_Click);
+            this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // excelSaveToolStripMenuItem
             // 
@@ -662,6 +663,34 @@ namespace Peel_tester
             this.setupToolStripMenuItem.Name = "setupToolStripMenuItem";
             this.setupToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
             this.setupToolStripMenuItem.Text = "Setup";
+            // 
+            // ssToolStripMenuItem
+            // 
+            this.ssToolStripMenuItem.Name = "ssToolStripMenuItem";
+            this.ssToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
+            this.ssToolStripMenuItem.Text = "Adjust zero point";
+            // 
+            // calibrationToolStripMenuItem1
+            // 
+            this.calibrationToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.startToolStripMenuItem,
+            this.weight50gToolStripMenuItem});
+            this.calibrationToolStripMenuItem1.Name = "calibrationToolStripMenuItem1";
+            this.calibrationToolStripMenuItem1.Size = new System.Drawing.Size(167, 22);
+            this.calibrationToolStripMenuItem1.Text = "Calibration";
+            // 
+            // startToolStripMenuItem
+            // 
+            this.startToolStripMenuItem.Name = "startToolStripMenuItem";
+            this.startToolStripMenuItem.Size = new System.Drawing.Size(137, 22);
+            this.startToolStripMenuItem.Text = "Start";
+            // 
+            // weight50gToolStripMenuItem
+            // 
+            this.weight50gToolStripMenuItem.Name = "weight50gToolStripMenuItem";
+            this.weight50gToolStripMenuItem.Size = new System.Drawing.Size(137, 22);
+            this.weight50gToolStripMenuItem.Text = "Weight 50g";
+            this.weight50gToolStripMenuItem.Click += new System.EventHandler(this.calibration50gToolStripMenuItem_Click);
             // 
             // helpToolStripMenuItem
             // 
@@ -795,34 +824,6 @@ namespace Peel_tester
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click_1);
             // 
-            // ssToolStripMenuItem
-            // 
-            this.ssToolStripMenuItem.Name = "ssToolStripMenuItem";
-            this.ssToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
-            this.ssToolStripMenuItem.Text = "Adjust zero point";
-            // 
-            // calibrationToolStripMenuItem1
-            // 
-            this.calibrationToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.startToolStripMenuItem,
-            this.weight50gToolStripMenuItem});
-            this.calibrationToolStripMenuItem1.Name = "calibrationToolStripMenuItem1";
-            this.calibrationToolStripMenuItem1.Size = new System.Drawing.Size(167, 22);
-            this.calibrationToolStripMenuItem1.Text = "Calibration";
-            // 
-            // startToolStripMenuItem
-            // 
-            this.startToolStripMenuItem.Name = "startToolStripMenuItem";
-            this.startToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.startToolStripMenuItem.Text = "Start";
-            // 
-            // weight50gToolStripMenuItem
-            // 
-            this.weight50gToolStripMenuItem.Name = "weight50gToolStripMenuItem";
-            this.weight50gToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.weight50gToolStripMenuItem.Text = "Weight 50g";
-            this.weight50gToolStripMenuItem.Click += new System.EventHandler(this.calibration50gToolStripMenuItem_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -894,6 +895,7 @@ namespace Peel_tester
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
             this.Text = "DF-2000";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.closingEvent);
             this.Resize += new System.EventHandler(this.resizeWindow);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
