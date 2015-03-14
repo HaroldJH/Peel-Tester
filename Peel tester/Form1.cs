@@ -80,19 +80,10 @@ namespace Peel_tester
 
             x1 = new PointPairList();
             x2 = new PointPairList();
-            
+
             InitializeComponent();
 
             graph = zedGraphControl1.GraphPane;
-
-            curve = graph.AddCurve("", max, Color.Red, SymbolType.None);
-            curve.Line.Width = 1.0f;
-
-            curve2 = graph.AddCurve("", max, Color.Red, SymbolType.None);
-            curve2.Line.Width = 1.0f;
-
-            curve3 = graph.AddCurve("", max, Color.Red, SymbolType.None);
-            curve3.Line.Width = 1.0f;
 
             FileProcess fp = new FileProcess();
             String readStr = fp.read(Directory.GetCurrentDirectory() + "/userInfo/userInfo.csv");
@@ -123,6 +114,15 @@ namespace Peel_tester
                     comboBox1.Text = str[18];
                 }
             }
+
+            curve = graph.AddCurve("", max, Color.Red, SymbolType.None);
+            curve.Line.Width = 1.0f;
+
+            curve2 = graph.AddCurve("", max, Color.Red, SymbolType.None);
+            curve2.Line.Width = 1.0f;
+
+            curve3 = graph.AddCurve("", max, Color.Red, SymbolType.None);
+            curve3.Line.Width = 1.0f;
 
             comboBox1.Items.Add("50");
             comboBox1.Items.Add("80");
@@ -167,12 +167,6 @@ namespace Peel_tester
             graph.YAxis.Scale.Max = 100.0f;
 
             zedGraphControl1.AxisChange();
-
-            for (int i = 0; i < 200; i++)
-            {
-                min.Add(i, minV);
-                max.Add(i, maxV);
-            }
 
             timer = new System.Windows.Forms.Timer();
             timer.Interval = 1000;
