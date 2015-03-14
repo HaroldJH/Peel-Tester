@@ -115,15 +115,6 @@ namespace Peel_tester
                 }
             }
 
-            curve = graph.AddCurve("", max, Color.Red, SymbolType.None);
-            curve.Line.Width = 1.0f;
-
-            curve2 = graph.AddCurve("", max, Color.Red, SymbolType.None);
-            curve2.Line.Width = 1.0f;
-
-            curve3 = graph.AddCurve("", max, Color.Red, SymbolType.None);
-            curve3.Line.Width = 1.0f;
-
             comboBox1.Items.Add("50");
             comboBox1.Items.Add("80");
             comboBox1.Items.Add("100");
@@ -1242,9 +1233,8 @@ namespace Peel_tester
 
         private void maxValueChange(object sender, EventArgs e)
         {
-            //maxV++;
-            //numericUpDown1.Text = String.Format("{0}", maxV);
-            //zedGraphControl1.GraphPane.CurveList.Clear();
+            numericUpDown1.Minimum = numericUpDown2.Value;
+            
             max.Clear();
 
             for (int i = 0; i < 200; i++)
@@ -1262,9 +1252,7 @@ namespace Peel_tester
 
         private void minValueChange(object sender, EventArgs e)
         {
-            //maxV++;
-            //numericUpDown1.Text = String.Format("{0}", maxV);
-            //zedGraphControl1.GraphPane.CurveList.Clear();
+            numericUpDown2.Maximum = numericUpDown1.Value;
             min.Clear();
 
             for (int i = 0; i < 200; i++)
