@@ -5,7 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 using System.IO.Ports;
 using System.Diagnostics;
@@ -40,8 +40,8 @@ namespace Peel_tester
         private GraphPane graph = null;
         private String flag = "NR";
         private List<String> reiceivedString;
-        private Timer timer;
-        private Timer timer2;
+        private System.Windows.Forms.Timer timer;
+        private System.Windows.Forms.Timer timer2;
         private String reicevedData = "";
         private double CAL00 = 140;
         private double CAL50 = 650;
@@ -62,6 +62,8 @@ namespace Peel_tester
         private double rMin = 0f, rMax = 0f;
         private String tempStr = "";
         private String fileFlag = "";
+        private Thread thread;
+        private int state1 = 0;
 
         public Form1()
         {
@@ -73,13 +75,13 @@ namespace Peel_tester
             y = new List<double>();
             list = new PointPairList();
 
-            InitializeComponent();
-
             max = new PointPairList();
             min = new PointPairList();
 
             x1 = new PointPairList();
             x2 = new PointPairList();
+            
+            InitializeComponent();
 
             graph = zedGraphControl1.GraphPane;
 
@@ -92,11 +94,42 @@ namespace Peel_tester
             curve3 = graph.AddCurve("", max, Color.Red, SymbolType.None);
             curve3.Line.Width = 1.0f;
 
+            FileProcess fp = new FileProcess();
+            String readStr = fp.read(Directory.GetCurrentDirectory() + "/userInfo/userInfo.csv");
+            if (!readStr.Equals(""))
+            {
+                String[] str = readStr.Split(new String[] { "," }, StringSplitOptions.None);
+                if (str[0].Equals("CHECKED"))
+                {
+                    checkBox1.Checked = true;
+
+                    textBox3.Text = str[1];
+                    textBox4.Text = str[2];
+                    textBox5.Text = str[3];
+                    textBox6.Text = str[4];
+                    textBox7.Text = str[5];
+                    textBox16.Text = str[6];
+                    textBox10.Text = str[7];
+                    textBox11.Text = str[8];
+                    textBox12.Text = str[9];
+                    textBox13.Text = str[10];
+                    textBox14.Text = str[11];
+                    textBox15.Text = str[12];
+                    numericUpDown1.Text = str[13];
+                    numericUpDown2.Text = str[14];
+                    numericUpDown3.Text = str[15];
+                    numericUpDown4.Text = str[16];
+                    comboBox2.Text = str[17];
+                    comboBox1.Text = str[18];
+                }
+            }
+
             comboBox1.Items.Add("50");
             comboBox1.Items.Add("80");
             comboBox1.Items.Add("100");
             comboBox1.Items.Add("120");
             comboBox1.Items.Add("150");
+            comboBox1.Items.Add("200");
 
             comboBox2.Items.Add("200");
             comboBox2.Items.Add("300");
@@ -119,7 +152,7 @@ namespace Peel_tester
             graph.Title.Text = "";
 
             // X Coordinate
-            graph.XAxis.Title.Text = "";
+            graph.XAxis.Title.Text = "Distance(mm)";
             //graph.XAxis.Scale.
             graph.XAxis.Scale.MinorStep = 1.0f;
             graph.XAxis.Scale.MajorStep = 5.0; // x-axis interval
@@ -127,7 +160,7 @@ namespace Peel_tester
             graph.XAxis.Scale.Max = 200.0f;
 
             // Y Coordinate
-            graph.YAxis.Title.Text = "";
+            graph.YAxis.Title.Text = "Weight View(g)";
             graph.YAxis.Scale.MinorStep = 1.0f;
             graph.YAxis.Scale.MajorStep = 5.0f; // y-axis interval
             graph.YAxis.Scale.Min = -5.0;
@@ -141,11 +174,11 @@ namespace Peel_tester
                 max.Add(i, maxV);
             }
 
-            timer = new Timer();
+            timer = new System.Windows.Forms.Timer();
             timer.Interval = 1000;
             timer.Tick += new EventHandler(sendHeartBeat);
 
-            timer2 = new Timer();
+            timer2 = new System.Windows.Forms.Timer();
             timer2.Interval = 1000;
             timer2.Tick += new EventHandler(stateCheck);
         }
@@ -171,7 +204,7 @@ namespace Peel_tester
 
                     // Send heart beat
                     reicevedData = "OK";
-                    //timer.Start();
+                    timer.Start();
                     //timer2.Start();
                     startCommSend();
                 }
@@ -210,13 +243,21 @@ namespace Peel_tester
             sp.Write(bytes, 0, bytes.Length);
 
             // Handler
-            sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+            //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+            
+            thread = new Thread(new ThreadStart(dataReceivedThread));
+            thread.Start();
+            
             wait(1);
+            thread = new Thread(new ThreadStart(dataReceivedThread));
+            thread.Start();
             Console.WriteLine("version : " + reiceivedString[0]);
             bytes = Encoding.UTF8.GetBytes("ATR CAL SEL\n");
             sp.Write(bytes, 0, bytes.Length);
 
             wait(2);
+            thread = new Thread(new ThreadStart(dataReceivedThread));
+            thread.Start();
             bytes = Encoding.UTF8.GetBytes("OK\n");
             sp.Write(bytes, 0, bytes.Length);
 
@@ -230,7 +271,8 @@ namespace Peel_tester
                 sp.Write(bytes, 0, bytes.Length);
 
                 wait(3);
-
+                thread = new Thread(new ThreadStart(dataReceivedThread));
+                thread.Start();
                 bytes = Encoding.UTF8.GetBytes("OK\n");
                 sp.Write(bytes, 0, bytes.Length);
                 Console.WriteLine("CALI " + reiceivedString[1]);
@@ -248,8 +290,11 @@ namespace Peel_tester
                 }
                 sp.Write(bytes, 0, bytes.Length);
                 wait(4);
+                thread = new Thread(new ThreadStart(dataReceivedThread));
+                thread.Start();
                 bytes = Encoding.UTF8.GetBytes("OK\n");
                 sp.Write(bytes, 0, bytes.Length);
+                //reiceivedString.Clear();
             }
         }
 
@@ -264,87 +309,76 @@ namespace Peel_tester
             sp.Write(bytes, 0, bytes.Length);
 
             reiceivedString.RemoveRange(0, reiceivedString.Count);
+            thread = new Thread(new ThreadStart(dataReceivedThread));
+            thread.Start();
+            Console.WriteLine("1");
             wait(1);
 
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS X02 {0}\n", numericUpDown4.Text));
             sp.Write(bytes, 0, bytes.Length);
-
+            thread = new Thread(new ThreadStart(dataReceivedThread));
+            thread.Start();
+            Console.WriteLine("2");
             wait(2);
 
             // Min. Value
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS MIN {0}\n", numericUpDown2.Text));
             sp.Write(bytes, 0, bytes.Length);
-
+            thread = new Thread(new ThreadStart(dataReceivedThread));
+            thread.Start();
+            Console.WriteLine("3");
             wait(3);
 
             // Max. Value
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS MAX {0}\n", numericUpDown1.Text));
             sp.Write(bytes, 0, bytes.Length);
-
+            thread = new Thread(new ThreadStart(dataReceivedThread));
+            thread.Start();
+            Console.WriteLine("4");
             wait(4);
 
             // Speed
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS SPD {0}\n", comboBox2.Text));
             sp.Write(bytes, 0, bytes.Length);
-
+            thread = new Thread(new ThreadStart(dataReceivedThread));
+            thread.Start();
+            Console.WriteLine("5");
             wait(5);
 
             // Start
             bytes = Encoding.UTF8.GetBytes("ATC SRT\n");
             sp.Write(bytes, 0, bytes.Length);
+            Console.WriteLine("1");
+            thread = new Thread(new ThreadStart(dataReceivedThread));
+            thread.Start();
+            Console.WriteLine("6");
             wait(6);
 
             queue.Clear();
             timer.Stop();
-            fl = 2;
+            sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
         }
 
         public void sendHeartBeat(object sender, EventArgs e)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes("ATA");
+            byte[] bytes = Encoding.UTF8.GetBytes("ATA\n");
             int tempFl = fl;
 
-            fl = 3;
-            switch (hb)
-            {
-                // If hb is 0, send "ATA"
-                case 0:
-                    {
-                        if (reicevedData.Equals("OK"))
-                        {
-                            sp.Write(bytes, 0, bytes.Length);
-                            reicevedData = "";
-                        }
-                        break;
-                    }
+            //thread.Abort();
 
-                // If hb isn't 0, Not work
-                default:
-                    break;
-            }
+            sp.Write(bytes, 0, bytes.Length);
+            reicevedData = "";
+            
+            int size = sp.BytesToRead;
+            byte[] buffer = new byte[size];
+            sp.Read(buffer, 0, buffer.Length);
+            sp.DiscardInBuffer();
+            Console.WriteLine("test");
+            Console.WriteLine(Encoding.Default.GetString(buffer));
 
-            while (true)
-            {
-                sw.Start();
-                Delay(100);
-
-                if (sw.Elapsed.TotalSeconds >= 5)
-                {
-                    // No Anwser
-                    sw.Stop();
-                    sp.Close();
-                    //MessageBox.Show("응답이 없습니다. 단말기 상태를 확인하여주십시오.");
-                    //timer.Stop();
-                    state = 0;
-                    break;
-                }
-                if (reicevedData.Equals("OK"))
-                {
-                    sw.Stop();
-                    break;
-                }
-            }
-            fl = tempFl;
+            //thread = new Thread(new ThreadStart(dataReceivedThread));
+            //thread.Start();
+           // sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
         }
 
         public void reqtClient()
@@ -383,32 +417,44 @@ namespace Peel_tester
             fl = 2;
         }
 
-        private void dataReceived(object sender, SerialDataReceivedEventArgs e)
+        private void dataReceivedThread()
         {
-            Console.WriteLine("fl = " + fl);
-            if (fl == 1)
+            try
             {
-                // start data reiceive
-                Console.WriteLine("수신");
-                int size = sp.BytesToRead;
-                byte[] bytes = new byte[size];
-                sp.Read(bytes, 0, size);
+                while (true)
+                {
+                    int size = sp.BytesToRead;
+                    if (size != 0)
+                    {
+                        byte[] buffer = new byte[size];
+                        sp.Read(buffer, 0, buffer.Length);
+                        sp.DiscardInBuffer();
+                        String recStr = Encoding.Default.GetString(buffer);
+                        Console.WriteLine("수신1 : " + recStr);
 
-                String recStr = Encoding.Default.GetString(bytes);
-                String tempStr = orgData(recStr);
-                /* 설정값.... */
-                Console.WriteLine("DATA IS " + tempStr);
-                if (!tempStr.Equals(""))
-                {
-                    reiceivedString.Add(tempStr);
-                }
-                if (tempStr.Equals("BTN START"))
-                {
-                    reqtClient();
+                        String temp = orgData(recStr);
+
+                        if (!temp.Equals(""))
+                        {
+                            reiceivedString.Add(temp);
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        Thread.Sleep(500);
+                    }
                 }
             }
-            else if (fl == 2)
+            catch
             {
+
+            }
+        }
+
+        private void dataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            
                 // start measure
                 int size = sp.BytesToRead;
                 byte[] bytes = new byte[size];
@@ -424,109 +470,91 @@ namespace Peel_tester
                     if (data.Count() == 3)
                     {
                         double calcValue = ((CAL50 - CAL00) / 500) * (double.Parse(data[2]) - CAL00);
+                        Console.WriteLine("SEQ : " + data[0]);
                         seq.Add(int.Parse(data[0]));
-                        x.Add(int.Parse(data[1]) / 10.0f);
+                        x.Add(int.Parse(data[1])/10);
                         y.Add(calcValue);
 
                         sum += calcValue;
-                        this.write(tempStr, "/log.txt");
+                        //this.write(tempStr, "/log.txt");
                         //drawing();
                         this.Invoke(new draw(drawing), null);
                     }
-                }
-
-                else if (tempStr.Equals("END"))
-                {
-                    PointPairList pp = new PointPairList();
-                    pp.Add(100, 100);
-                    
-                    LineItem myCurve = graph.AddCurve("Gas Data", pp, Color.Red,
-                        SymbolType.Diamond);
-                    myCurve.Symbol.Size = 12;
-                    // Set up a red-blue color gradient to be used for the fill
-                    myCurve.Symbol.Fill = new Fill(Color.Red, Color.Blue);
-                    // Turn off the symbol borders
-                    myCurve.Symbol.Border.IsVisible = false;
-                    // Instruct ZedGraph to fill the symbols by selecting a color out of the
-                    // red-blue gradient based on the Z value.  A value of 19 or less will be red,
-                    // a value of 34 or more will be blue, and values in between will be a
-                    // linearly apportioned color between red and blue.
-                    myCurve.Symbol.Fill.Type = FillType.GradientByZ;
-                    myCurve.Symbol.Fill.RangeMin = 19;
-                    myCurve.Symbol.Fill.RangeMax = 34;
-                    // Turn off the line, so the curve will by symbols only
-                    myCurve.Line.IsVisible = false;
-
-                    bytes = Encoding.UTF8.GetBytes("OK\n");
-                    sp.Write(bytes, 0, bytes.Length);
-
-                    bytes = Encoding.UTF8.GetBytes("ATD MIN 155\n");
-                    sp.Write(bytes, 0, bytes.Length);
-
-                    bytes = Encoding.UTF8.GetBytes("ATD MAX 2051\n");
-                    sp.Write(bytes, 0, bytes.Length);
-
-                    avg = sum / seq[seq.Count - 1];
-
-                    bytes = Encoding.UTF8.GetBytes(String.Format("ATD AVG {0}\n", avg));
-                    sp.Write(bytes, 0, bytes.Length);
-
-                    double[] numberY = new double[seq.Count];
-
-                    for (int i = 0; i < seq.Count; i++)
-                    {
-                        numberY[i] = x[i];
-                    }
-
-                    std = Math.Sqrt(numberY.Average(n => { double dif = n - avg; return dif * dif; }));
-
-                    bytes = Encoding.UTF8.GetBytes(String.Format("ATD STD {0}\n", std));
-                    sp.Write(bytes, 0, bytes.Length);
-
-                    if (fail > 0)
-                    {
-                        //label22.Text = String.Format("{0}", "FAIL");
-                        //this.Invoke(new draw(result), null);
-                        resultF = "FAIL";
-                    }
-                    else if (fail == 0)
-                    {
-                        //label22.Text = String.Format("{0}", "Success");
-                        //Invoke(new draw(result), "Success", "", "", "");
-                        resultF = "Success";
-                    }
-
-                    Invoke(new draw(result), null);
-
                     /*
-                    label31.Text = String.Format("{0}", max);
-                    label32.Text = String.Format("{0}", min);
-                    label35.Text = String.Format("{0}", avg);
-                     * */
+                    else if (tempStr.Equals("END"))
+                    {
+                        PointPairList pp = new PointPairList();
+                        pp.Add(100, 100);
+                    
+                        LineItem myCurve = graph.AddCurve("Gas Data", pp, Color.Red,
+                            SymbolType.Diamond);
+                        myCurve.Symbol.Size = 12;
+                        // Set up a red-blue color gradient to be used for the fill
+                        myCurve.Symbol.Fill = new Fill(Color.Red, Color.Blue);
+                        // Turn off the symbol borders
+                        myCurve.Symbol.Border.IsVisible = false;
+                        // Instruct ZedGraph to fill the symbols by selecting a color out of the
+                        // red-blue gradient based on the Z value.  A value of 19 or less will be red,
+                        // a value of 34 or more will be blue, and values in between will be a
+                        // linearly apportioned color between red and blue.
+                        myCurve.Symbol.Fill.Type = FillType.GradientByZ;
+                        myCurve.Symbol.Fill.RangeMin = 19;
+                        myCurve.Symbol.Fill.RangeMax = 34;
+                        // Turn off the line, so the curve will by symbols only
+                        myCurve.Line.IsVisible = false;
+
+                        bytes = Encoding.UTF8.GetBytes("OK\n");
+                        sp.Write(bytes, 0, bytes.Length);
+
+                        bytes = Encoding.UTF8.GetBytes("ATD MIN 155\n");
+                        sp.Write(bytes, 0, bytes.Length);
+
+                        bytes = Encoding.UTF8.GetBytes("ATD MAX 2051\n");
+                        sp.Write(bytes, 0, bytes.Length);
+
+                        avg = sum / seq[seq.Count - 1];
+
+                        bytes = Encoding.UTF8.GetBytes(String.Format("ATD AVG {0}\n", avg));
+                        sp.Write(bytes, 0, bytes.Length);
+
+                        double[] numberY = new double[seq.Count];
+
+                        for (int i = 0; i < seq.Count; i++)
+                        {
+                            numberY[i] = x[i];
+                        }
+
+                        std = Math.Sqrt(numberY.Average(n => { double dif = n - avg; return dif * dif; }));
+
+                        bytes = Encoding.UTF8.GetBytes(String.Format("ATD STD {0}\n", std));
+                        sp.Write(bytes, 0, bytes.Length);
+
+                        if (fail > 0)
+                        {
+                            //label22.Text = String.Format("{0}", "FAIL");
+                            //this.Invoke(new draw(result), null);
+                            resultF = "FAIL";
+                        }
+                        else if (fail == 0)
+                        {
+                            //label22.Text = String.Format("{0}", "Success");
+                            //Invoke(new draw(result), "Success", "", "", "");
+                            resultF = "Success";
+                        }
+
+                        Invoke(new draw(result), null);
+
+                        /*
+                        label31.Text = String.Format("{0}", max);
+                        label32.Text = String.Format("{0}", min);
+                        label35.Text = String.Format("{0}", avg);
+                         * 
+                    }
                 }
-            }
-            else if (fl == 3)
-            {
-                int size = sp.BytesToRead;
-                byte[] bytes = new byte[size];
-                sp.Read(bytes, 0, size);
+                     * */
 
-                String recStr = Encoding.Default.GetString(bytes);
-                reicevedData = orgData(recStr);
-            }
-
-            if (fl == 4)
-            {
-                // Request Host
-                int size = sp.BytesToRead;
-                byte[] bytes = new byte[size];
-                sp.Read(bytes, 0, size);
-
-                String recStr = Encoding.Default.GetString(bytes);
-                String tempStr = orgData(recStr);
-
-                reiceivedString.Add(Encoding.Default.GetString(bytes));
-            }
+                }
+                    sp.DiscardInBuffer();
         }
 
         private void result()
@@ -682,8 +710,6 @@ namespace Peel_tester
             {
                 x = this.x[i];
                 y = this.y[i];
-                Console.WriteLine("X : " + x);
-                Console.WriteLine("Y : " + y);
                 sum += y;
                 list.Add(x, y);
 
@@ -887,13 +913,18 @@ namespace Peel_tester
 
         private void button14_Click(object sender, EventArgs e)
         {
-            fl = 4;
-            queue.Clear();
-            if (sp != null)
-            {
-                if (sp.IsOpen)
+            if (state1 == 0) { 
+                queue.Clear();
+                if (sp != null)
                 {
-                    reqtHost();
+                    if (sp.IsOpen)
+                    {
+                        reqtHost();
+                    }
+                    else
+                    {
+                        MessageBox.Show("연결되지 않은 상태입니다.");
+                    }
                 }
                 else
                 {
@@ -902,7 +933,9 @@ namespace Peel_tester
             }
             else
             {
-                MessageBox.Show("연결되지 않은 상태입니다.");
+                byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATC RSM\n", std));
+                sp.Write(bytes, 0, bytes.Length);
+                timer.Stop();
             }
         }
 
@@ -964,7 +997,7 @@ namespace Peel_tester
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            saveUserInfo();
+            //saveUserInfo();
         }
 
         private void saveUserInfo()
@@ -1245,7 +1278,7 @@ namespace Peel_tester
                 min.Add(i, double.Parse(numericUpDown2.Value.ToString()));
             }
 
-            curve = graph.AddCurve("", min, Color.Black, SymbolType.None);
+            curve = graph.AddCurve("", min, Color.Purple, SymbolType.None);
 
             curve.Line.Width = 1.0f;
 
@@ -1265,7 +1298,7 @@ namespace Peel_tester
                 x1.Add(double.Parse(numericUpDown3.Value.ToString()), i);
             }
 
-            curve = graph.AddCurve("", x1, Color.Red, SymbolType.None);
+            curve = graph.AddCurve("", x1, Color.Blue, SymbolType.None);
 
             curve.Line.Width = 1.0f;
 
@@ -1470,8 +1503,10 @@ namespace Peel_tester
             {
                 if (sp.IsOpen)
                 {
-                    byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATC RSM\n", std));
+                    byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATC PAU\n", std));
+                    state1 = 1;
                     sp.Write(bytes, 0, bytes.Length);
+                    timer.Start();
                 }
             }
         }
@@ -1484,6 +1519,7 @@ namespace Peel_tester
                 {
                     byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATC RST\n", std));
                     sp.Write(bytes, 0, bytes.Length);
+                    timer.Start();
                 }
             }
         }
@@ -1525,8 +1561,15 @@ namespace Peel_tester
         private void closingEvent(object sender, FormClosingEventArgs e)
         {
             saveUserInfo();
-            sp.DataReceived -= new SerialDataReceivedEventHandler(dataReceived);
-            sp.Close();
+            if (sp != null)
+            {
+                sp.DataReceived -= new SerialDataReceivedEventHandler(dataReceived);
+                sp.Dispose();
+                sp.Close();
+                sp = null;
+                //System.Runtime.InteropServices.Marshal.FinalReleaseComObject(sp);
+                GC.Collect();
+            }
         }
     }
 }
