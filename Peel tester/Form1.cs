@@ -64,6 +64,9 @@ namespace Peel_tester
         private String fileFlag = "";
         private Thread thread;
         private int state1 = 0;
+        private double calVal = 0f;
+        private float percent = 0f;
+        private int fl1 = 1;
 
         public Form1()
         {
@@ -184,20 +187,22 @@ namespace Peel_tester
                 {
                     sp.Open();
 
+                    label39.Text = "CONNECTED";
                     Console.WriteLine("CONNECTED");
                     state = 1;
 
                     // Send heart beat
                     reicevedData = "OK";
-                    timer.Start();
+                    
                     //timer2.Start();
                     startCommSend();
+                    timer.Start();
                 }
                 catch (SystemException exception)
                 {
                     // 시리얼포트 open실패시 예외처리
                     //throw new se
-
+                    Console.WriteLine(exception);
                     MessageBox.Show("연결 상태를 확인하십시오");
                 }
 
@@ -226,21 +231,27 @@ namespace Peel_tester
         {
             byte[] bytes = Encoding.UTF8.GetBytes("ATZ\n");
             sp.Write(bytes, 0, bytes.Length);
-
+            
             // Handler
             //sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
             
             thread = new Thread(new ThreadStart(dataReceivedThread));
             thread.Start();
-            
+
+            fl1 = 0;
             wait(1);
+            Console.WriteLine("A");
+            thread.Abort();
             thread = new Thread(new ThreadStart(dataReceivedThread));
             thread.Start();
             Console.WriteLine("version : " + reiceivedString[0]);
             bytes = Encoding.UTF8.GetBytes("ATR CAL SEL\n");
             sp.Write(bytes, 0, bytes.Length);
 
+            fl1 = 0;
             wait(2);
+            Console.WriteLine("B");
+            thread.Abort();
             thread = new Thread(new ThreadStart(dataReceivedThread));
             thread.Start();
             bytes = Encoding.UTF8.GetBytes("OK\n");
@@ -255,7 +266,10 @@ namespace Peel_tester
                 bytes = Encoding.UTF8.GetBytes("ATR CAL 000\n");
                 sp.Write(bytes, 0, bytes.Length);
 
+                fl1 = 0;
                 wait(3);
+                Console.WriteLine("C");
+                thread.Abort();
                 thread = new Thread(new ThreadStart(dataReceivedThread));
                 thread.Start();
                 bytes = Encoding.UTF8.GetBytes("OK\n");
@@ -274,12 +288,22 @@ namespace Peel_tester
                     bytes = Encoding.UTF8.GetBytes("ATR CAL 100\n");
                 }
                 sp.Write(bytes, 0, bytes.Length);
+                fl1 = 0;
                 wait(4);
+
+                String[] temp = reiceivedString[2].Split(new String[] { " " }, StringSplitOptions.None);
+                String[] temp1 = reiceivedString[3].Split(new String[] { " " }, StringSplitOptions.None);
+                
+                calVal = (double.Parse(temp[2]) - double.Parse(temp[1])) / (double.Parse(temp1[2]) - double.Parse(temp1[1]));
+                Console.WriteLine("CALI : " + (int.Parse(temp[2]) - int.Parse(temp[1])));
+                Console.WriteLine("CALI : " + (int.Parse(temp1[2]) - int.Parse(temp1[1])));
+                Console.WriteLine("CAL : " + calVal);
+                thread.Abort();
                 thread = new Thread(new ThreadStart(dataReceivedThread));
                 thread.Start();
                 bytes = Encoding.UTF8.GetBytes("OK\n");
                 sp.Write(bytes, 0, bytes.Length);
-                //reiceivedString.Clear();
+                thread.Abort();
             }
         }
 
@@ -290,6 +314,7 @@ namespace Peel_tester
 
         public void reqtHost()
         {
+            timer.Stop();
             byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATS X01 {0}\n", numericUpDown3.Text));
             sp.Write(bytes, 0, bytes.Length);
 
@@ -297,69 +322,97 @@ namespace Peel_tester
             thread = new Thread(new ThreadStart(dataReceivedThread));
             thread.Start();
             Console.WriteLine("1");
+            fl1 = 0;
             wait(1);
 
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS X02 {0}\n", numericUpDown4.Text));
             sp.Write(bytes, 0, bytes.Length);
+            Thread.Sleep(500);
+            thread.Abort();
             thread = new Thread(new ThreadStart(dataReceivedThread));
             thread.Start();
             Console.WriteLine("2");
+            fl1 = 0;
             wait(2);
 
             // Min. Value
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS MIN {0}\n", numericUpDown2.Text));
             sp.Write(bytes, 0, bytes.Length);
+            thread.Abort();
             thread = new Thread(new ThreadStart(dataReceivedThread));
             thread.Start();
             Console.WriteLine("3");
+            fl1 = 0;
             wait(3);
 
             // Max. Value
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS MAX {0}\n", numericUpDown1.Text));
             sp.Write(bytes, 0, bytes.Length);
+            thread.Abort();
             thread = new Thread(new ThreadStart(dataReceivedThread));
             thread.Start();
             Console.WriteLine("4");
+            fl1 = 0;
             wait(4);
 
             // Speed
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS SPD {0}\n", comboBox2.Text));
             sp.Write(bytes, 0, bytes.Length);
+            thread.Abort();
             thread = new Thread(new ThreadStart(dataReceivedThread));
             thread.Start();
             Console.WriteLine("5");
+            fl1 = 0;
             wait(5);
 
             // Start
             bytes = Encoding.UTF8.GetBytes("ATC SRT\n");
             sp.Write(bytes, 0, bytes.Length);
             Console.WriteLine("1");
+            thread.Abort();
             thread = new Thread(new ThreadStart(dataReceivedThread));
             thread.Start();
             Console.WriteLine("6");
+            fl1 = 0;
             wait(6);
 
             queue.Clear();
             timer.Stop();
+            thread.Abort();
             sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
         }
 
         public void sendHeartBeat(object sender, EventArgs e)
         {
             byte[] bytes = Encoding.UTF8.GetBytes("ATA\n");
-            int tempFl = fl;
-
-            //thread.Abort();
-
-            sp.Write(bytes, 0, bytes.Length);
-            reicevedData = "";
             
-            int size = sp.BytesToRead;
-            byte[] buffer = new byte[size];
-            sp.Read(buffer, 0, buffer.Length);
-            sp.DiscardInBuffer();
-            Console.WriteLine("test");
-            Console.WriteLine(Encoding.Default.GetString(buffer));
+            //thread.Abort();
+            if (sp.IsOpen)
+            {
+                sp.Write(bytes, 0, bytes.Length);
+                reicevedData = "";
+
+                Thread.Sleep(500);
+
+                int size = sp.BytesToRead;
+                byte[] buffer = new byte[size];
+                sp.Read(buffer, 0, buffer.Length);
+                sp.DiscardInBuffer();
+                String temp = Encoding.UTF8.GetString(buffer);
+                Console.WriteLine("test");
+                Console.WriteLine(temp);
+
+                if (temp.IndexOf("OK\n") == -1)
+                {
+                    label39.Text = "DISCONNECTED";
+                    thread.Abort();
+                    sp.Close();
+                }
+                else if (temp.IndexOf("START\n") == -1)
+                {
+                    reqtClient();
+                }
+            }
 
             //thread = new Thread(new ThreadStart(dataReceivedThread));
             //thread.Start();
@@ -370,30 +423,33 @@ namespace Peel_tester
         {
             byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATS MIN {0}\n", numericUpDown2.Text));
             sp.Write(bytes, 0, bytes.Length);
-
+            fl1 = 0;
             wait(1);
 
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS X01 {0}\n", numericUpDown3.Text));
             sp.Write(bytes, 0, bytes.Length);
 
+            fl1 = 0;
             wait(2);
 
             // Min. Value
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS X02 {0}\n", numericUpDown4.Text));
             sp.Write(bytes, 0, bytes.Length);
 
+            fl1 = 0;
             wait(3);
 
             // Max. Value
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS MAX {0}\n", numericUpDown1.Text));
             sp.Write(bytes, 0, bytes.Length);
 
+            fl1 = 0;
             wait(4);
 
             // Speed
             bytes = Encoding.UTF8.GetBytes(String.Format("ATS SPD {0}\n", comboBox2.Text));
             sp.Write(bytes, 0, bytes.Length);
-
+            fl1 = 0;
             wait(5);
 
             bytes = Encoding.UTF8.GetBytes("ATC SRT\n");
@@ -413,7 +469,7 @@ namespace Peel_tester
                     {
                         byte[] buffer = new byte[size];
                         sp.Read(buffer, 0, buffer.Length);
-                        sp.DiscardInBuffer();
+                        
                         String recStr = Encoding.Default.GetString(buffer);
                         Console.WriteLine("수신1 : " + recStr);
 
@@ -422,8 +478,8 @@ namespace Peel_tester
                         if (!temp.Equals(""))
                         {
                             reiceivedString.Add(temp);
+                            break;
                         }
-                        break;
                     }
                     else
                     {
@@ -454,18 +510,24 @@ namespace Peel_tester
                     String[] data = tempStr.Split(new String[] { " " }, StringSplitOptions.None);
                     if (data.Count() == 3)
                     {
-                        double calcValue = ((CAL50 - CAL00) / 500) * (double.Parse(data[2]) - CAL00);
+                        double calcValue = double.Parse(data[2]) * calVal;//((CAL50 - CAL00) / 500) * (double.Parse(data[2]) - CAL00);
                         Console.WriteLine("SEQ : " + data[0]);
-                        seq.Add(int.Parse(data[0]));
+                        if (!data[0].Equals(""))
+                        {
+                            seq.Add(int.Parse(data[0]));
+                            percent = float.Parse(data[0]) / 410 * 100;
+                        }
+                        Console.WriteLine("X : " + data[1]);
+                        Console.WriteLine("Y : " + calcValue);
                         x.Add(int.Parse(data[1])/10);
-                        y.Add(calcValue);
-
+                        y.Add(Math.Round(calcValue/10f, 2));
+                        
                         sum += calcValue;
                         //this.write(tempStr, "/log.txt");
                         //drawing();
                         this.Invoke(new draw(drawing), null);
                     }
-                    /*
+                    
                     else if (tempStr.Equals("END"))
                     {
                         PointPairList pp = new PointPairList();
@@ -533,10 +595,9 @@ namespace Peel_tester
                         label31.Text = String.Format("{0}", max);
                         label32.Text = String.Format("{0}", min);
                         label35.Text = String.Format("{0}", avg);
-                         * 
+                         */ 
                     }
-                }
-                     * */
+                
 
                 }
                     sp.DiscardInBuffer();
@@ -608,42 +669,14 @@ namespace Peel_tester
             return tempStr;
         }
 
-        public void write(String str, String fileName)
-        {
-            String dir = Directory.GetCurrentDirectory() + "/userInfo";
-            FileStream ois = null;
-            Console.WriteLine("TEST : " + str);
-            try
-            {
-                FileInfo fileInfo = new FileInfo(dir + fileName);
-                if (!fileInfo.Exists)
-                {
-                    fileInfo.Create();
-                }
-                Console.WriteLine("FILE : " + fileInfo.FullName);
-                ois = new FileStream(dir + fileName, FileMode.Open);
-
-                byte[] bytes = Encoding.UTF8.GetBytes(str);
-                ois.Write(bytes, 0, bytes.Length);
-            }
-            catch (IOException ie)
-            {
-                Console.WriteLine("FAIL");
-                Console.WriteLine(ie);
-            }
-            finally
-            {
-                ois.Close();
-            }
-        }
-
         private void wait(int i)
         {
             while (true)
             {
                 Delay(100);
-                if (reiceivedString.Count == i)
+                if (reiceivedString.Count == i && fl1 == 0)
                 {
+                    fl1 = 1;
                     break;
                 }
             }
@@ -683,6 +716,7 @@ namespace Peel_tester
         private void drawing()
         {
             list.Clear();
+            progressBar1.Value = (int)percent;
             //zedGraphControl1.GraphPane.CurveList.Clear();
 
             // Draw Graph
@@ -898,6 +932,7 @@ namespace Peel_tester
 
         private void button14_Click(object sender, EventArgs e)
         {
+            thread.Abort();
             if (state1 == 0) { 
                 queue.Clear();
                 if (sp != null)
@@ -1076,10 +1111,12 @@ namespace Peel_tester
             Excel.Workbook wb = excel.Workbooks.Add();
             Excel._Worksheet ws = (Excel.Worksheet)excel.ActiveSheet;
 
+            excel.Visible = false;
+
             for (int inx = 0; inx < this.x.Count; inx++)
             {
-                ws.Cells[inx, "A"] = this.x[inx];
-                ws.Cells[inx, "B"] = this.y[inx];
+                ws.Cells[inx, "A"] = "A";
+                ws.Cells[inx, "B"] = "B";
             }
 
             SaveFileDialog sd = new SaveFileDialog();
