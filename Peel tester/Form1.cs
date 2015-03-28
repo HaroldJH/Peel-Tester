@@ -382,6 +382,7 @@ namespace Peel_tester
 
         private void checkTimer(object sender, EventArgs e)
         {
+            Console.WriteLine("TS : {0}", tStat);
             switch (tStat)
             {
                 case 1:
@@ -437,6 +438,7 @@ namespace Peel_tester
                         timer2.Stop();
                         timer3.Stop();
                         timer5.Stop();
+                        timer6.Stop();
                         break ;
                     }
 
@@ -630,10 +632,11 @@ namespace Peel_tester
                 case 7:
                     {
                         queue.Clear();
-                        timer.Stop();
+                        //timer.Stop();
                         thread.Abort();
-                        timer4.Stop();
+                        //timer4.Stop();
                         fl1++;
+                        tStat = 0;
                         sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
                         break;
                     }
@@ -663,14 +666,15 @@ namespace Peel_tester
                 String temp = Encoding.UTF8.GetString(buffer);
                 Console.WriteLine("test");
                 Console.WriteLine(temp);
+                Console.WriteLine(temp.IndexOf("BTN START"));
                 if (!temp.Equals("") && temp.Length != 14)
                 { 
-                    if (temp.IndexOf("OK\n") == -1 && temp.IndexOf("BTN START\n") == -1)
+                    if (temp.IndexOf("OK") == -1 && temp.IndexOf("BTN START") == -1)
                     {
                         label39.Text = "DISCONNECTED";
                         sp.Close();
                     }
-                    else if (temp.IndexOf("BTN START\n") != -1 && temp.IndexOf("OK\n") == -1)
+                    else if (temp.IndexOf("BTN START") != -1)
                     {
                         sts = 1;
                         tStat = 2;
@@ -701,7 +705,7 @@ namespace Peel_tester
                     {
                         bytes = Encoding.UTF8.GetBytes(String.Format("ATS MAX {0}\n", numericUpDown2.Text));
                         sp.Write(bytes, 0, bytes.Length);
-                        fl1 = 0;
+                       
                         thread = new Thread(new ThreadStart(dataReceivedThread));
                         thread.Start();
                         break;
@@ -749,11 +753,12 @@ namespace Peel_tester
                     }
                 case 7:
                     {
+                        fl1++;
+                        tStat = 0;
                         sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
                         break;
                     }
             }
-            Console.WriteLine("START BTMN");
         }
 
         private void dataReceivedThread()
@@ -796,7 +801,8 @@ namespace Peel_tester
 
         private void dataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            
+            //sp.DiscardInBuffer();
+            queue.Clear();
             // start measure
             int size = sp.BytesToRead;
             byte[] bytes = new byte[size];
@@ -861,18 +867,7 @@ namespace Peel_tester
                 MessageBox.Show("완료되었습니다.....");
                 
                 //progressBar1.Style = ProgressBarStyle.Marquee;
-                /*
-                if (fail > 0)
-                {
-                    fl = 0;
-                    resultF = "Success";
-                }
-                else if (fail == 0)
-                {
-                    fl = 1;
-                    resultF = "Fail";
-                }
-                */
+                
                 avg = sum / seq[seq.Count - 1];
                 double[] numberY = new double[seq.Count];
 
@@ -882,39 +877,7 @@ namespace Peel_tester
                 }
                 std = Math.Sqrt(numberY.Average(n => { double dif = n - avg; return dif * dif; }));
                 Invoke(new drawR(result), avg, std, rMin, rMax, resultF);
-
-                for (int i = 0; i < seq.Count; i++)
-                {
-                    if (rMax <= y[i])
-                    {
-                        rMax = y[i];
-                    }
-                    if (rMin >= y[i])
-                    {
-                        rMin = y[i];
-                    }
-                }
-                /*
-                PointPairList pp = new PointPairList();
-                pp.Add(100, 100);
-
-                LineItem myCurve = graph.AddCurve("Gas Data", pp, Color.Red,
-                    SymbolType.Diamond);
-                myCurve.Symbol.Size = 12;
-                // Set up a red-blue color gradient to be used for the fill
-                myCurve.Symbol.Fill = new Fill(Color.Red, Color.Blue);
-                // Turn off the symbol borders
-                myCurve.Symbol.Border.IsVisible = false;
-                // Instruct ZedGraph to fill the symbols by selecting a color out of the
-                // red-blue gradient based on the Z value.  A value of 19 or less will be red,
-                // a value of 34 or more will be blue, and values in between will be a
-                // linearly apportioned color between red and blue.
-                myCurve.Symbol.Fill.Type = FillType.GradientByZ;
-                myCurve.Symbol.Fill.RangeMin = 19;
-                myCurve.Symbol.Fill.RangeMax = 34;
-                // Turn off the line, so the curve will by symbols only
-                myCurve.Line.IsVisible = false;
-                */
+                
                 //if(thread.ThreadState)
                     
                 thread = new Thread(new ThreadStart(sendStatics));
@@ -926,6 +889,32 @@ namespace Peel_tester
                     * */
 
             }
+            else if(tempStr.IndexOf("PAUSE") != -1)
+            {
+
+            }
+            else if (tempStr.IndexOf("RESET") != -1)
+            {
+                tStat = 1;
+                fl1 = 1;
+                flag = "RST";
+                state1 = 0;
+                if (sp != null)
+                {
+                    if (sp.IsOpen)
+                    {
+                        sp.DataReceived -= new SerialDataReceivedEventHandler(dataReceived);
+                        bytes = Encoding.UTF8.GetBytes(String.Format("ATC RST\n", std));
+                        x.Clear();
+                        y.Clear();
+                        seq.Clear();
+                        list.Clear();
+                        sp.Write(bytes, 0, bytes.Length);
+                    }
+                }
+                zedGraphControl1.Refresh();
+                zedGraphControl1.AxisChange();
+            }
             else
             {
                 if (!tempStr.Equals(""))
@@ -934,7 +923,7 @@ namespace Peel_tester
                     Console.WriteLine("크기 : {0}", reiceivedString.Count);
                 }
             }
-                sp.DiscardInBuffer();
+            sp.DiscardInBuffer();
         }
 
         private void sendStatics()
@@ -969,10 +958,14 @@ namespace Peel_tester
             if (numericUpDown1.Value > maxY.Max())
             {
                 bytes = Encoding.UTF8.GetBytes(String.Format("ATD RES {0}\n", "PAS"));
+                fl = 0;
+                resultF = "Success";
             }
             if (numericUpDown2.Value < minY.Min())
             {
                 bytes = Encoding.UTF8.GetBytes(String.Format("ATD RES {0}\n", "FAI"));
+                fl = 1;
+                resultF = "Fail";
             }
             sp.Write(bytes, 0, bytes.Length);
 
@@ -983,8 +976,30 @@ namespace Peel_tester
         {
             double CP, CPK;
 
-            minY.Sort();
-            maxY.Sort();
+            minY.Reverse();
+            maxY.Reverse();
+
+            
+                PointPairList pp = new PointPairList();
+                //pp.Add(x[maxY.Find(maxY[0]) - 1], maxY[0]);
+                
+                LineItem myCurve = graph.AddCurve("", pp, Color.Red,
+                    SymbolType.Diamond);
+                myCurve.Symbol.Size = 12;
+                // Set up a red-blue color gradient to be used for the fill
+                myCurve.Symbol.Fill = new Fill(Color.Red, Color.Blue);
+                // Turn off the symbol borders
+                myCurve.Symbol.Border.IsVisible = false;
+                // Instruct ZedGraph to fill the symbols by selecting a color out of the
+                // red-blue gradient based on the Z value.  A value of 19 or less will be red,
+                // a value of 34 or more will be blue, and values in between will be a
+                // linearly apportioned color between red and blue.
+                myCurve.Symbol.Fill.Type = FillType.GradientByZ;
+                myCurve.Symbol.Fill.RangeMin = 19;
+                myCurve.Symbol.Fill.RangeMax = 34;
+                // Turn off the line, so the curve will by symbols only
+                myCurve.Line.IsVisible = false;
+                
 
             if (fl == 1)
             {
@@ -1163,7 +1178,7 @@ namespace Peel_tester
             // Disconnect
             if (sp.IsOpen)
             {
-                timer.Stop();
+                tStat = 0;
                 sp.Close();
             }
             else
@@ -1339,12 +1354,12 @@ namespace Peel_tester
             }
             if (state1 == 1) 
             {
-                //if(!flag.Equals("RST"))
-                //{ 
+                if(!flag.Equals("RST"))
+                { 
                     byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATC RSM\n", std));
                     sp.Write(bytes, 0, bytes.Length);
                     tStat = 0;
-                //}
+                }
             }
         }
 
@@ -1949,19 +1964,21 @@ namespace Peel_tester
 
         private void button2_Click_1(object sender, EventArgs e)
         {
+            tStat = 1;
+            fl1 = 1;
+            flag = "RST";
+            state1 = 0;
             if (sp != null)
             {
                 if (sp.IsOpen)
                 {
+                    sp.DataReceived -= new SerialDataReceivedEventHandler(dataReceived);
                     byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATC RST\n", std));
                     x.Clear();
                     y.Clear();
                     seq.Clear();
                     list.Clear();
                     sp.Write(bytes, 0, bytes.Length);
-                    tStat = 1;
-                    fl1 = 1;
-                    flag = "RST";
                 }
             }
             zedGraphControl1.Refresh();
