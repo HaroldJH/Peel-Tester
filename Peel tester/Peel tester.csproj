@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArrayList.cs" />
+    <Compile Include="ArrayList_2.cs" />
     <Compile Include="DataDelegate.cs" />
     <Compile Include="FileProcess.cs" />
     <Compile Include="Rs232Buffer.cs" />

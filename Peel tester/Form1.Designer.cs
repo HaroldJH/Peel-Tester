@@ -112,43 +112,17 @@ namespace Peel_tester
             this.numericUpDown4 = new System.Windows.Forms.NumericUpDown();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
+            this.label38 = new System.Windows.Forms.Label();
+            this.label39 = new System.Windows.Forms.Label();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.label40 = new System.Windows.Forms.Label();
+            this.comboBox3 = new System.Windows.Forms.ComboBox();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown4)).BeginInit();
             this.SuspendLayout();
-
-
-            FileProcess fp = new FileProcess();
-            String readStr = fp.read(Directory.GetCurrentDirectory() + "/userInfo/userInfo.csv");
-            if (!readStr.Equals(""))
-            {
-                String[] str = readStr.Split(new String[] { "," }, StringSplitOptions.None);
-                if (str[0].Equals("CHECKED"))
-                {
-                    checkBox1.Checked = true;
-
-                    textBox3.Text = str[1];
-                    textBox4.Text = str[2];
-                    textBox5.Text = str[3];
-                    textBox6.Text = str[4];
-                    textBox7.Text = str[5];
-                    textBox16.Text = str[6];
-                    textBox10.Text = str[7];
-                    textBox11.Text = str[8];
-                    textBox12.Text = str[9];
-                    textBox13.Text = str[10];
-                    textBox14.Text = str[11];
-                    textBox15.Text = str[12];
-                    numericUpDown1.Text = str[13];
-                    numericUpDown2.Text = str[14];
-                    numericUpDown3.Text = str[15];
-                    numericUpDown4.Text = str[16];
-                    comboBox2.Text = str[17];
-                    comboBox1.Text = str[18];
-                }
-            }
             // 
             // zedGraphControl1
             // 
@@ -418,63 +392,63 @@ namespace Peel_tester
             this.textBox10.Location = new System.Drawing.Point(377, 84);
             this.textBox10.Name = "textBox10";
             this.textBox10.Size = new System.Drawing.Size(100, 21);
-            this.textBox10.TabIndex = 41;
+            this.textBox10.TabIndex = 40;
             // 
             // textBox11
             // 
             this.textBox11.Location = new System.Drawing.Point(377, 116);
             this.textBox11.Name = "textBox11";
             this.textBox11.Size = new System.Drawing.Size(100, 21);
-            this.textBox11.TabIndex = 42;
+            this.textBox11.TabIndex = 41;
             // 
             // textBox12
             // 
             this.textBox12.Location = new System.Drawing.Point(377, 149);
             this.textBox12.Name = "textBox12";
             this.textBox12.Size = new System.Drawing.Size(100, 21);
-            this.textBox12.TabIndex = 43;
+            this.textBox12.TabIndex = 42;
             // 
             // textBox13
             // 
             this.textBox13.Location = new System.Drawing.Point(377, 182);
             this.textBox13.Name = "textBox13";
             this.textBox13.Size = new System.Drawing.Size(100, 21);
-            this.textBox13.TabIndex = 44;
+            this.textBox13.TabIndex = 43;
             // 
             // textBox14
             // 
             this.textBox14.Location = new System.Drawing.Point(377, 213);
             this.textBox14.Name = "textBox14";
             this.textBox14.Size = new System.Drawing.Size(100, 21);
-            this.textBox14.TabIndex = 45;
+            this.textBox14.TabIndex = 44;
             // 
             // textBox15
             // 
             this.textBox15.Location = new System.Drawing.Point(377, 243);
             this.textBox15.Name = "textBox15";
             this.textBox15.Size = new System.Drawing.Size(100, 21);
-            this.textBox15.TabIndex = 46;
+            this.textBox15.TabIndex = 45;
             // 
             // textBox16
             // 
             this.textBox16.Location = new System.Drawing.Point(136, 243);
             this.textBox16.Name = "textBox16";
             this.textBox16.Size = new System.Drawing.Size(100, 21);
-            this.textBox16.TabIndex = 47;
+            this.textBox16.TabIndex = 39;
             // 
             // label22
             // 
             this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(955, 77);
+            this.label22.Font = new System.Drawing.Font("Gulim", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label22.Location = new System.Drawing.Point(925, 55);
             this.label22.Name = "label22";
-            this.label22.Size = new System.Drawing.Size(59, 12);
+            this.label22.Size = new System.Drawing.Size(0, 12);
             this.label22.TabIndex = 48;
-            this.label22.Text = "pass(fail)";
             // 
             // label23
             // 
             this.label23.AutoSize = true;
-            this.label23.Location = new System.Drawing.Point(912, 118);
+            this.label23.Location = new System.Drawing.Point(919, 84);
             this.label23.Name = "label23";
             this.label23.Size = new System.Drawing.Size(38, 12);
             this.label23.TabIndex = 49;
@@ -483,7 +457,7 @@ namespace Peel_tester
             // label24
             // 
             this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(914, 152);
+            this.label24.Location = new System.Drawing.Point(919, 115);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(74, 12);
             this.label24.TabIndex = 50;
@@ -492,7 +466,7 @@ namespace Peel_tester
             // label25
             // 
             this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(914, 182);
+            this.label25.Location = new System.Drawing.Point(921, 148);
             this.label25.Name = "label25";
             this.label25.Size = new System.Drawing.Size(22, 12);
             this.label25.TabIndex = 51;
@@ -501,7 +475,7 @@ namespace Peel_tester
             // label26
             // 
             this.label26.AutoSize = true;
-            this.label26.Location = new System.Drawing.Point(914, 208);
+            this.label26.Location = new System.Drawing.Point(921, 174);
             this.label26.Name = "label26";
             this.label26.Size = new System.Drawing.Size(30, 12);
             this.label26.TabIndex = 52;
@@ -518,7 +492,7 @@ namespace Peel_tester
             // label28
             // 
             this.label28.AutoSize = true;
-            this.label28.Location = new System.Drawing.Point(1004, 152);
+            this.label28.Location = new System.Drawing.Point(963, 86);
             this.label28.Name = "label28";
             this.label28.Size = new System.Drawing.Size(0, 12);
             this.label28.TabIndex = 56;
@@ -526,16 +500,17 @@ namespace Peel_tester
             // label29
             // 
             this.label29.AutoSize = true;
-            this.label29.Location = new System.Drawing.Point(982, 182);
+            this.label29.Location = new System.Drawing.Point(989, 148);
             this.label29.Name = "label29";
             this.label29.Size = new System.Drawing.Size(22, 12);
             this.label29.TabIndex = 57;
             this.label29.Text = "CP";
+            this.label29.Click += new System.EventHandler(this.label29_Click);
             // 
             // label30
             // 
             this.label30.AutoSize = true;
-            this.label30.Location = new System.Drawing.Point(982, 204);
+            this.label30.Location = new System.Drawing.Point(989, 170);
             this.label30.Name = "label30";
             this.label30.Size = new System.Drawing.Size(30, 12);
             this.label30.TabIndex = 58;
@@ -722,26 +697,28 @@ namespace Peel_tester
             // label35
             // 
             this.label35.AutoSize = true;
-            this.label35.Location = new System.Drawing.Point(984, 116);
+            this.label35.Location = new System.Drawing.Point(1011, 116);
             this.label35.Name = "label35";
             this.label35.Size = new System.Drawing.Size(0, 12);
             this.label35.TabIndex = 68;
             // 
             // comboBox2
             // 
+            this.comboBox2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox2.FormattingEnabled = true;
             this.comboBox2.Location = new System.Drawing.Point(645, 223);
             this.comboBox2.Name = "comboBox2";
             this.comboBox2.Size = new System.Drawing.Size(60, 20);
-            this.comboBox2.TabIndex = 70;
+            this.comboBox2.TabIndex = 50;
             // 
             // comboBox1
             // 
+            this.comboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox1.FormattingEnabled = true;
             this.comboBox1.Location = new System.Drawing.Point(645, 255);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(60, 20);
-            this.comboBox1.TabIndex = 71;
+            this.comboBox1.TabIndex = 51;
             this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
             // 
             // label36
@@ -767,7 +744,7 @@ namespace Peel_tester
             this.numericUpDown1.Location = new System.Drawing.Point(605, 83);
             this.numericUpDown1.Name = "numericUpDown1";
             this.numericUpDown1.Size = new System.Drawing.Size(100, 21);
-            this.numericUpDown1.TabIndex = 78;
+            this.numericUpDown1.TabIndex = 46;
             this.numericUpDown1.Value = new decimal(new int[] {
             95,
             0,
@@ -780,7 +757,7 @@ namespace Peel_tester
             this.numericUpDown2.Location = new System.Drawing.Point(605, 120);
             this.numericUpDown2.Name = "numericUpDown2";
             this.numericUpDown2.Size = new System.Drawing.Size(100, 21);
-            this.numericUpDown2.TabIndex = 79;
+            this.numericUpDown2.TabIndex = 47;
             this.numericUpDown2.ValueChanged += new System.EventHandler(this.minValueChange);
             // 
             // numericUpDown3
@@ -788,7 +765,7 @@ namespace Peel_tester
             this.numericUpDown3.Location = new System.Drawing.Point(605, 156);
             this.numericUpDown3.Name = "numericUpDown3";
             this.numericUpDown3.Size = new System.Drawing.Size(100, 21);
-            this.numericUpDown3.TabIndex = 80;
+            this.numericUpDown3.TabIndex = 48;
             this.numericUpDown3.ValueChanged += new System.EventHandler(this.x1ValueChange);
             // 
             // numericUpDown4
@@ -801,7 +778,7 @@ namespace Peel_tester
             0});
             this.numericUpDown4.Name = "numericUpDown4";
             this.numericUpDown4.Size = new System.Drawing.Size(100, 21);
-            this.numericUpDown4.TabIndex = 81;
+            this.numericUpDown4.TabIndex = 49;
             this.numericUpDown4.ValueChanged += new System.EventHandler(this.x2ValueChange);
             // 
             // button1
@@ -810,7 +787,7 @@ namespace Peel_tester
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(38, 23);
             this.button1.TabIndex = 82;
-            this.button1.Text = "button1";
+            this.button1.Text = "pause";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click_1);
             // 
@@ -820,15 +797,64 @@ namespace Peel_tester
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(36, 23);
             this.button2.TabIndex = 83;
-            this.button2.Text = "button2";
+            this.button2.Text = "reset";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click_1);
+            // 
+            // label38
+            // 
+            this.label38.AutoSize = true;
+            this.label38.Location = new System.Drawing.Point(774, 243);
+            this.label38.Name = "label38";
+            this.label38.Size = new System.Drawing.Size(40, 12);
+            this.label38.TabIndex = 84;
+            this.label38.Text = "Status";
+            // 
+            // label39
+            // 
+            this.label39.AutoSize = true;
+            this.label39.Font = new System.Drawing.Font("Gulim", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label39.Location = new System.Drawing.Point(838, 243);
+            this.label39.Name = "label39";
+            this.label39.Size = new System.Drawing.Size(78, 12);
+            this.label39.TabIndex = 85;
+            this.label39.Text = "Disconnect";
+            // 
+            // progressBar1
+            // 
+            this.progressBar1.Location = new System.Drawing.Point(0, 290);
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(1079, 23);
+            this.progressBar1.TabIndex = 86;
+            // 
+            // label40
+            // 
+            this.label40.AutoSize = true;
+            this.label40.Location = new System.Drawing.Point(838, 56);
+            this.label40.Name = "label40";
+            this.label40.Size = new System.Drawing.Size(52, 12);
+            this.label40.TabIndex = 87;
+            this.label40.Text = "RESULT";
+            // 
+            // comboBox3
+            // 
+            this.comboBox3.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox3.FormattingEnabled = true;
+            this.comboBox3.Location = new System.Drawing.Point(248, 27);
+            this.comboBox3.Name = "comboBox3";
+            this.comboBox3.Size = new System.Drawing.Size(57, 20);
+            this.comboBox3.TabIndex = 88;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1079, 713);
+            this.Controls.Add(this.comboBox3);
+            this.Controls.Add(this.label40);
+            this.Controls.Add(this.progressBar1);
+            this.Controls.Add(this.label39);
+            this.Controls.Add(this.label38);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.numericUpDown4);
@@ -989,6 +1015,11 @@ namespace Peel_tester
         private System.Windows.Forms.ToolStripMenuItem calibrationToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem startToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem weight50gToolStripMenuItem;
+        private System.Windows.Forms.Label label38;
+        private System.Windows.Forms.Label label39;
+        private System.Windows.Forms.ProgressBar progressBar1;
+        private System.Windows.Forms.Label label40;
+        private System.Windows.Forms.ComboBox comboBox3;
 
         //private System.Collections.Queue queue;
     }
