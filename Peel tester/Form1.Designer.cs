@@ -35,7 +35,6 @@ namespace Peel_tester
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.serialPort1 = new System.IO.Ports.SerialPort(this.components);
             this.zedGraphControl1 = new ZedGraph.ZedGraphControl();
-            this.button3 = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -57,7 +56,6 @@ namespace Peel_tester
             this.label19 = new System.Windows.Forms.Label();
             this.label20 = new System.Windows.Forms.Label();
             this.label21 = new System.Windows.Forms.Label();
-            this.button5 = new System.Windows.Forms.Button();
             this.textBox3 = new System.Windows.Forms.TextBox();
             this.textBox4 = new System.Windows.Forms.TextBox();
             this.textBox5 = new System.Windows.Forms.TextBox();
@@ -84,7 +82,6 @@ namespace Peel_tester
             this.label33 = new System.Windows.Forms.Label();
             this.label34 = new System.Windows.Forms.Label();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.button14 = new System.Windows.Forms.Button();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -110,13 +107,16 @@ namespace Peel_tester
             this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown3 = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown4 = new System.Windows.Forms.NumericUpDown();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
             this.label38 = new System.Windows.Forms.Label();
             this.label39 = new System.Windows.Forms.Label();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.label40 = new System.Windows.Forms.Label();
             this.comboBox3 = new System.Windows.Forms.ComboBox();
+            this.button2 = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
+            this.button14 = new System.Windows.Forms.Button();
+            this.button5 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
@@ -126,8 +126,11 @@ namespace Peel_tester
             // 
             // zedGraphControl1
             // 
+            this.zedGraphControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.zedGraphControl1.AutoSize = true;
-            this.zedGraphControl1.Location = new System.Drawing.Point(0, 303);
+            this.zedGraphControl1.Location = new System.Drawing.Point(0, 305);
             this.zedGraphControl1.Name = "zedGraphControl1";
             this.zedGraphControl1.ScrollGrace = 0D;
             this.zedGraphControl1.ScrollMaxX = 0D;
@@ -136,19 +139,8 @@ namespace Peel_tester
             this.zedGraphControl1.ScrollMinX = 0D;
             this.zedGraphControl1.ScrollMinY = 0D;
             this.zedGraphControl1.ScrollMinY2 = 0D;
-            this.zedGraphControl1.Size = new System.Drawing.Size(1079, 408);
+            this.zedGraphControl1.Size = new System.Drawing.Size(1079, 406);
             this.zedGraphControl1.TabIndex = 1;
-            // 
-            // button3
-            // 
-            this.button3.AutoSize = true;
-            this.button3.Image = ((System.Drawing.Image)(resources.GetObject("button3.Image")));
-            this.button3.Location = new System.Drawing.Point(57, 27);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(33, 23);
-            this.button3.TabIndex = 3;
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // label1
             // 
@@ -298,7 +290,7 @@ namespace Peel_tester
             // label17
             // 
             this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(774, 143);
+            this.label17.Location = new System.Drawing.Point(772, 143);
             this.label17.Name = "label17";
             this.label17.Size = new System.Drawing.Size(26, 12);
             this.label17.TabIndex = 20;
@@ -339,17 +331,6 @@ namespace Peel_tester
             this.label21.Size = new System.Drawing.Size(54, 12);
             this.label21.TabIndex = 26;
             this.label21.Text = "max avg";
-            // 
-            // button5
-            // 
-            this.button5.AutoSize = true;
-            this.button5.Image = ((System.Drawing.Image)(resources.GetObject("button5.Image")));
-            this.button5.Location = new System.Drawing.Point(12, 27);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(32, 23);
-            this.button5.TabIndex = 28;
-            this.button5.UseVisualStyleBackColor = true;
-            this.button5.Click += new System.EventHandler(this.button1_Click);
             // 
             // textBox3
             // 
@@ -459,9 +440,9 @@ namespace Peel_tester
             this.label24.AutoSize = true;
             this.label24.Location = new System.Drawing.Point(919, 115);
             this.label24.Name = "label24";
-            this.label24.Size = new System.Drawing.Size(74, 12);
+            this.label24.Size = new System.Drawing.Size(48, 24);
             this.label24.TabIndex = 50;
-            this.label24.Text = "Std Dev(SD)";
+            this.label24.Text = "Std Dev\r\n(SD)\r\n";
             // 
             // label25
             // 
@@ -559,16 +540,6 @@ namespace Peel_tester
             this.checkBox1.TabIndex = 63;
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
-            // 
-            // button14
-            // 
-            this.button14.Image = ((System.Drawing.Image)(resources.GetObject("button14.Image")));
-            this.button14.Location = new System.Drawing.Point(100, 27);
-            this.button14.Name = "button14";
-            this.button14.Size = new System.Drawing.Size(30, 23);
-            this.button14.TabIndex = 65;
-            this.button14.UseVisualStyleBackColor = true;
-            this.button14.Click += new System.EventHandler(this.button14_Click);
             // 
             // menuStrip1
             // 
@@ -697,7 +668,7 @@ namespace Peel_tester
             // label35
             // 
             this.label35.AutoSize = true;
-            this.label35.Location = new System.Drawing.Point(1011, 116);
+            this.label35.Location = new System.Drawing.Point(989, 122);
             this.label35.Name = "label35";
             this.label35.Size = new System.Drawing.Size(0, 12);
             this.label35.TabIndex = 68;
@@ -781,26 +752,6 @@ namespace Peel_tester
             this.numericUpDown4.TabIndex = 49;
             this.numericUpDown4.ValueChanged += new System.EventHandler(this.x2ValueChange);
             // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(140, 27);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(38, 23);
-            this.button1.TabIndex = 82;
-            this.button1.Text = "pause";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click_1);
-            // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(187, 27);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(36, 23);
-            this.button2.TabIndex = 83;
-            this.button2.Text = "reset";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click_1);
-            // 
             // label38
             // 
             this.label38.AutoSize = true;
@@ -822,7 +773,10 @@ namespace Peel_tester
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(0, 290);
+            this.progressBar1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.progressBar1.Location = new System.Drawing.Point(0, 283);
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(1079, 23);
             this.progressBar1.TabIndex = 86;
@@ -845,11 +799,63 @@ namespace Peel_tester
             this.comboBox3.Size = new System.Drawing.Size(57, 20);
             this.comboBox3.TabIndex = 88;
             // 
+            // button2
+            // 
+            this.button2.Image = global::Peel_tester.Properties.Resources.stop1;
+            this.button2.Location = new System.Drawing.Point(187, 27);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(36, 23);
+            this.button2.TabIndex = 83;
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click_1);
+            // 
+            // button1
+            // 
+            this.button1.Image = global::Peel_tester.Properties.Resources.pause1;
+            this.button1.Location = new System.Drawing.Point(140, 27);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(38, 23);
+            this.button1.TabIndex = 82;
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click_1);
+            // 
+            // button14
+            // 
+            this.button14.Image = ((System.Drawing.Image)(resources.GetObject("button14.Image")));
+            this.button14.Location = new System.Drawing.Point(100, 27);
+            this.button14.Name = "button14";
+            this.button14.Size = new System.Drawing.Size(30, 23);
+            this.button14.TabIndex = 65;
+            this.button14.UseVisualStyleBackColor = true;
+            this.button14.Click += new System.EventHandler(this.button14_Click);
+            // 
+            // button5
+            // 
+            this.button5.AutoSize = true;
+            this.button5.Image = ((System.Drawing.Image)(resources.GetObject("button5.Image")));
+            this.button5.Location = new System.Drawing.Point(12, 27);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(32, 23);
+            this.button5.TabIndex = 28;
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // button3
+            // 
+            this.button3.AutoSize = true;
+            this.button3.Image = ((System.Drawing.Image)(resources.GetObject("button3.Image")));
+            this.button3.Location = new System.Drawing.Point(57, 27);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(33, 23);
+            this.button3.TabIndex = 3;
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1079, 713);
+            this.ClientSize = new System.Drawing.Size(1079, 693);
             this.Controls.Add(this.comboBox3);
             this.Controls.Add(this.label40);
             this.Controls.Add(this.progressBar1);
@@ -919,6 +925,8 @@ namespace Peel_tester
             this.Controls.Add(this.zedGraphControl1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
+            this.MaximumSize = new System.Drawing.Size(1920, 1080);
+            this.MinimumSize = new System.Drawing.Size(16, 650);
             this.Name = "Form1";
             this.Text = "DF-2000";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.closingEvent);

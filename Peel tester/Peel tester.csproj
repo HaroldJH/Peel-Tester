@@ -96,6 +96,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\pause.png" />
+    <None Include="Resources\stop.png" />
+    <None Include="Resources\pause1.png" />
+    <None Include="Resources\stop1.png" />
     <Content Include="ZedGraph.dll" />
   </ItemGroup>
   <ItemGroup>

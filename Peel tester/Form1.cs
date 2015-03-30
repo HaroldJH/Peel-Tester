@@ -54,7 +54,7 @@ namespace Peel_tester
         private Stopwatch sw;
         private int fl = 1;
         private int hb = 0;
-        private List<int> seq;
+        private List<String> seq;
         private List<double> x;
         private List<double> y;
         private PointPairList list;
@@ -85,22 +85,27 @@ namespace Peel_tester
         private int thStat = 0;
         private int tStat = 0;
         private List<int> inclination;
-        private List<int> maxY;
-        private List<int> minY;
+        private List<double> maxY;
+        private List<double> minY;
+        private List<double> maxX;
+        private List<double> minX;
+        private int f = 0;
 
         public Form1()
         {
             reiceivedString = new List<string>();
 
             queue = new Queue<String>();
-            seq = new List<int>();
+            seq = new List<String>();
             x = new List<double>();
             y = new List<double>();
             list = new PointPairList();
             inclination = new List<int>();
 
-            maxY = new List<int>();
-            minY = new List<int>();
+            maxY = new List<double>();
+            minY = new List<double>();
+            maxX = new List<double>();
+            minX = new List<double>();
 
             max = new PointPairList();
             min = new PointPairList();
@@ -330,6 +335,7 @@ namespace Peel_tester
                 sp.ReadTimeout = (int)500;
                 sp.WriteTimeout = (int)500;
                 sp.ReceivedBytesThreshold = 1;
+                f = 0;
                 if (sp.IsOpen)
                 {
                     //sp.Close();
@@ -341,7 +347,7 @@ namespace Peel_tester
                     {
                         sp.Open();
 
-                        label39.Text = "CONNECTED";
+                        label39.Text = "Connecting....";
                         Console.WriteLine("CONNECTED");
                         state = 1;
 
@@ -550,8 +556,11 @@ namespace Peel_tester
                     case 4:
                         {
                             Console.WriteLine("CALIB {0}", reiceivedString[3].Split(new String[] { " " }, StringSplitOptions.None)[2]);
+                            CAL00 = double.Parse(reiceivedString[2].Split(new String[] { " " }, StringSplitOptions.None)[2]);
                             calib = double.Parse(reiceivedString[3].Split(new String[] { " " }, StringSplitOptions.None)[2]);
                             tStat = 1;
+                            label39.Text = "Connected";
+                            f = 1;
                             break ;
                         }
                     default :
@@ -810,7 +819,7 @@ namespace Peel_tester
 
             String recStr = Encoding.Default.GetString(bytes);
             String tempStr = orgData(recStr);
-            this.tempStr += tempStr + "\r\n";
+            //this.tempStr += tempStr + "\r\n";
             Console.WriteLine("값 : " + tempStr);
             if (tempStr.Length == 14)
             {
@@ -819,25 +828,19 @@ namespace Peel_tester
                 {
                     //double calcValue = double.Parse(data[2]) * calVal;//((CAL50 - CAL00) / 500) * (double.Parse(data[2]) - CAL00);
                     //double calcValue = (double.Parse(data[2]) * cali)/40 - calVal;
-                    double calcValue = cali * (double.Parse(data[2]) - cali00) / (calib - cali00);
+                    //if ((calib - cali00) == 0) { MessageBox.Show("ZERO...."); }
+                    double calcValue = cali * ((double.Parse(data[2]) - cali00)) / (calib - cali00);
                     Console.WriteLine("SEQ : " + data[0]);
-                    if (!data[0].Equals(""))
-                    {
-                        try { 
-                        seq.Add(int.Parse(data[0]));
+                    
+                        seq.Add(data[0]);
+                    
                         percent = float.Parse(data[0]) / 406 * 100;
                         Console.WriteLine("X : " + data[1]);
                         Console.WriteLine("Y : " + calcValue);
                         x.Add(int.Parse(data[1]) / 10f);
                         y.Add(Math.Round(calcValue, 2));
-                            }
-                        catch(Exception ee)
-                        {
-
-                        }
-                    }
-
-                    if (int.Parse(data[0]) > 1)
+                    try { 
+                    if (int.Parse(data[0]) > 2 && y.Count-2>0&&x.Count-1>0)
                     {
                         inclination.Add((int)(y[y.Count-1] - y[y.Count-2]));
                         if (inclination.Count > 1)
@@ -846,19 +849,26 @@ namespace Peel_tester
                             {
                                 // 최솟값
                                 minY.Add((int)y[y.Count-1]);
+                                minX.Add((int)x[x.Count - 1]);
                             }
                             else if (inclination[inclination.Count-1] == 0 && inclination[inclination.Count - 2] > 0)
                             {
                                 // 최댓값
                                 maxY.Add((int)y[y.Count-1]);
+                                maxX.Add((int)x[x.Count - 1]);
                             }
                         }
                     }
-
+                        
                     sum += calcValue;
                     //this.write(tempStr, "/log.txt");
                     //drawing();
                     this.Invoke(new draw(drawing), null);
+                        }
+                    catch (Exception e1)
+                    {
+                        //MessageBox.Show("테스트용\n{0}", e1.Message);
+                    }
                 }     
             }
             //else if (tempStr.IndexOf("END") != -1)
@@ -868,7 +878,7 @@ namespace Peel_tester
                 
                 //progressBar1.Style = ProgressBarStyle.Marquee;
                 
-                avg = sum / seq[seq.Count - 1];
+                avg = sum / double.Parse(seq[seq.Count - 1]);
                 double[] numberY = new double[seq.Count];
 
                 for (int i = 0; i < seq.Count; i++)
@@ -928,7 +938,8 @@ namespace Peel_tester
 
         private void sendStatics()
         {
-            reiceivedString.RemoveRange(0, reiceivedString.Count);
+            //reiceivedString.RemoveRange(0, reiceivedString.Count-1);
+            reiceivedString.Clear();
             fl1 = 0;
 
             byte[] bytes = Encoding.UTF8.GetBytes("OK\n");
@@ -955,21 +966,34 @@ namespace Peel_tester
             wait(4);
             fl1 = 0;
 
-            if (numericUpDown1.Value > maxY.Max())
+            if (numericUpDown1.Value.CompareTo((int)maxY.Max()) < 0)
             {
                 bytes = Encoding.UTF8.GetBytes(String.Format("ATD RES {0}\n", "PAS"));
                 fl = 0;
-                resultF = "Success";
+                resultF = "PASS";
             }
-            if (numericUpDown2.Value < minY.Min())
+            if (numericUpDown2.Value.CompareTo((int)minY.Min()) > 0)
             {
                 bytes = Encoding.UTF8.GetBytes(String.Format("ATD RES {0}\n", "FAI"));
                 fl = 1;
                 resultF = "Fail";
             }
             sp.Write(bytes, 0, bytes.Length);
-
+            
             MessageBox.Show("통계값 전송완료.");
+        }
+
+        private static bool EndsWithSaurus(String s)
+        {
+            if ((s.Length > 5) &&
+                (s.Substring(s.Length - 6).ToLower() == "saurus"))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private void result(double avg1, double std1, double min1, double max1, String result)
@@ -979,26 +1003,35 @@ namespace Peel_tester
             minY.Reverse();
             maxY.Reverse();
 
-            
-                PointPairList pp = new PointPairList();
-                //pp.Add(x[maxY.Find(maxY[0]) - 1], maxY[0]);
-                
-                LineItem myCurve = graph.AddCurve("", pp, Color.Red,
-                    SymbolType.Diamond);
-                myCurve.Symbol.Size = 12;
-                // Set up a red-blue color gradient to be used for the fill
-                myCurve.Symbol.Fill = new Fill(Color.Red, Color.Blue);
-                // Turn off the symbol borders
-                myCurve.Symbol.Border.IsVisible = false;
-                // Instruct ZedGraph to fill the symbols by selecting a color out of the
-                // red-blue gradient based on the Z value.  A value of 19 or less will be red,
-                // a value of 34 or more will be blue, and values in between will be a
-                // linearly apportioned color between red and blue.
-                myCurve.Symbol.Fill.Type = FillType.GradientByZ;
-                myCurve.Symbol.Fill.RangeMin = 19;
-                myCurve.Symbol.Fill.RangeMax = 34;
-                // Turn off the line, so the curve will by symbols only
-                myCurve.Line.IsVisible = false;
+            PointPairList pp = new PointPairList();
+            try
+            {
+                pp.Add(x[y.IndexOf(maxY[0]) - 1], maxY[0]);
+                pp.Add(x[y.IndexOf(maxY[1]) - 1], maxY[1]);
+                pp.Add(x[y.IndexOf(maxY[2]) - 1], maxY[2]);
+
+            }
+            catch (Exception e)
+            {
+
+            }
+
+            LineItem myCurve = graph.AddCurve("", pp, Color.Red,
+                SymbolType.Diamond);
+            myCurve.Symbol.Size = 12;
+            // Set up a red-blue color gradient to be used for the fill
+            myCurve.Symbol.Fill = new Fill(Color.Red, Color.Blue);
+            // Turn off the symbol borders
+            myCurve.Symbol.Border.IsVisible = false;
+            // Instruct ZedGraph to fill the symbols by selecting a color out of the
+            // red-blue gradient based on the Z value.  A value of 19 or less will be red,
+            // a value of 34 or more will be blue, and values in between will be a
+            // linearly apportioned color between red and blue.
+            myCurve.Symbol.Fill.Type = FillType.GradientByZ;
+            myCurve.Symbol.Fill.RangeMin = 19;
+            myCurve.Symbol.Fill.RangeMax = 34;
+            // Turn off the line, so the curve will by symbols only
+            myCurve.Line.IsVisible = false;
                 
 
             if (fl == 1)
@@ -1022,6 +1055,10 @@ namespace Peel_tester
             label32.Text = String.Format("{0:F2}", minY.Min());
             label35.Text = String.Format("{0:F2}", avg1);
             label28.Text = String.Format("{0:F2}", std1);
+            label21.Text = String.Format("{0:F2}", minY.Average());
+            label33.Text = String.Format("{0:F2}", maxY.Average());
+            //label21.Text = String.Format("{0:F2}", minY[0]+mi);
+            //label33.Text = String.Format("{0:F2}", maxY.Average());
         }
 
         private String orgData(String recStr)
@@ -1329,37 +1366,44 @@ namespace Peel_tester
         private void button14_Click(object sender, EventArgs e)
         {
             tStat = 0;
-            if (state1 == 0) 
+            if (f == 1) 
             { 
-                queue.Clear();
-                if (sp != null)
-                {
-                    Console.WriteLine("IS ALIVE? : " + sp.IsOpen);
-                    if (sp.IsOpen)
+                if (state1 == 0) 
+                { 
+                    queue.Clear();
+                    if (sp != null)
                     {
-                        //timer.Stop();
-                        fl1 = 1;
-                        tStat = 5;
-                        //reqtHost();
+                        Console.WriteLine("IS ALIVE? : " + sp.IsOpen);
+                        if (sp.IsOpen)
+                        {
+                            //timer.Stop();
+                            fl1 = 1;
+                            tStat = 5;
+                            //reqtHost();
+                        }
+                        else
+                        {
+                            MessageBox.Show("연결되지 않은 상태입니다.");
+                        }
                     }
                     else
                     {
                         MessageBox.Show("연결되지 않은 상태입니다.");
                     }
                 }
-                else
+                if (state1 == 1) 
                 {
-                    MessageBox.Show("연결되지 않은 상태입니다.");
+                    if(!flag.Equals("RST"))
+                    { 
+                        byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATC RSM\n", std));
+                        sp.Write(bytes, 0, bytes.Length);
+                        tStat = 0;
+                    }
                 }
             }
-            if (state1 == 1) 
+            else if (f == 0)
             {
-                if(!flag.Equals("RST"))
-                { 
-                    byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATC RSM\n", std));
-                    sp.Write(bytes, 0, bytes.Length);
-                    tStat = 0;
-                }
+                MessageBox.Show("미연결상태입니다.");
             }
         }
 
@@ -1799,7 +1843,7 @@ namespace Peel_tester
                             {
                                 String[] temp2 = temp[i].Split(new String[] { ";" }, StringSplitOptions.None);
                                 
-                                seq.Add(int.Parse(temp2[0]));
+                                seq.Add(temp2[0]);
                                 x.Add(double.Parse(temp2[1]));
                                 Console.WriteLine("x is {0}", temp2[1]);
                                 y.Add(double.Parse(temp2[2]));
@@ -1826,9 +1870,12 @@ namespace Peel_tester
 
         private void resizeWindow(object sender, EventArgs e)
         {
-            zedGraphControl1.Size = new System.Drawing.Size(ClientSize.Width, ClientSize.Height / 2);
-            zedGraphControl1.Location = new Point(0, ClientSize.Height/2);
-            progressBar1.Location = new Point(0, ClientSize.Height / 2-55);
+            //zedGraphControl1.Size = new System.Drawing.Size(ClientSize.Width, ClientSize.Height / 2+height / ClientSize.Height*50);
+            //zedGraphControl1.Location = new Point(0, ClientSize.Height / 2 - height / ClientSize.Height * 50);
+            
+            //progressBar1.Location = new Point(0, ClientSize.Height / 2-26);
+            progressBar1.Size = new Size(ClientSize.Width, 30);
+
             if (Width > ClientSize.Width)
             {
                 graph.XAxis.Scale.MinorStep = (float)width / ClientSize.Width;
@@ -1964,7 +2011,7 @@ namespace Peel_tester
 
         private void button2_Click_1(object sender, EventArgs e)
         {
-            tStat = 1;
+            //tStat = 1;
             fl1 = 1;
             flag = "RST";
             state1 = 0;
@@ -1974,15 +2021,54 @@ namespace Peel_tester
                 {
                     sp.DataReceived -= new SerialDataReceivedEventHandler(dataReceived);
                     byte[] bytes = Encoding.UTF8.GetBytes(String.Format("ATC RST\n", std));
+                    sp.Write(bytes, 0, bytes.Length);
+                    thread = new Thread(new ThreadStart(resetFunc));
+                    thread.Start();
                     x.Clear();
                     y.Clear();
                     seq.Clear();
                     list.Clear();
-                    sp.Write(bytes, 0, bytes.Length);
                 }
             }
             zedGraphControl1.Refresh();
             zedGraphControl1.AxisChange();
+        }
+
+        private void resetFunc()
+        {
+            try
+            {
+                while (sp.IsOpen)
+                {
+                    int size = sp.BytesToRead;
+                    if (size != 0)
+                    {
+                        byte[] buffer = new byte[size];
+                        sp.Read(buffer, 0, buffer.Length);
+
+                        String recStr = Encoding.Default.GetString(buffer);
+                        Console.WriteLine("수신1 : " + recStr);
+
+                        String temp = orgData(recStr);
+
+                        if (temp.IndexOf("RESET") != -1)
+                        {
+                            reiceivedString.Add(temp);
+                            
+                            thStat = 1;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(500);
+                    }
+                }
+            }
+            catch
+            {
+
+            }
         }
 
         private void fileToolStripMenuItem_Click(object sender, EventArgs e)
