@@ -829,7 +829,11 @@ namespace Peel_tester
                     //double calcValue = double.Parse(data[2]) * calVal;//((CAL50 - CAL00) / 500) * (double.Parse(data[2]) - CAL00);
                     //double calcValue = (double.Parse(data[2]) * cali)/40 - calVal;
                     //if ((calib - cali00) == 0) { MessageBox.Show("ZERO...."); }
-                    double calcValue = cali * ((double.Parse(data[2]) - cali00)) / (calib - cali00);
+                    double calcValue = cali * (double.Parse(data[2]) - cali00) / (calib - cali00);
+                    if (data[0].Equals("0000"))
+                    {
+                        MessageBox.Show("CAL 00 : " + cali00 + "\nCALIB : " + calib + "\nADC : " + data[2]);
+                    }
                     Console.WriteLine("SEQ : " + data[0]);
                     
                         seq.Add(data[0]);
@@ -875,7 +879,7 @@ namespace Peel_tester
             else if (tempStr.Equals("END"))
             {
                 MessageBox.Show("완료되었습니다.....");
-                
+                percent = 100;
                 //progressBar1.Style = ProgressBarStyle.Marquee;
                 
                 avg = sum / double.Parse(seq[seq.Count - 1]);
@@ -905,7 +909,7 @@ namespace Peel_tester
             }
             else if (tempStr.IndexOf("RESET") != -1)
             {
-                tStat = 1;
+                //tStat = 1;
                 fl1 = 1;
                 flag = "RST";
                 state1 = 0;
@@ -915,6 +919,8 @@ namespace Peel_tester
                     {
                         sp.DataReceived -= new SerialDataReceivedEventHandler(dataReceived);
                         bytes = Encoding.UTF8.GetBytes(String.Format("ATC RST\n", std));
+                        //thread = new Thread(new ThreadStart(resetFunc));
+                        //thread.Start();
                         x.Clear();
                         y.Clear();
                         seq.Clear();
@@ -1144,12 +1150,19 @@ namespace Peel_tester
         private void drawing()
         {
             list.Clear();
-            if ((int)percent > 100)
+            try
             {
-                progressBar1.Value = 100;
+                if ((int)percent >= 100)
+                {
+                    progressBar1.Value = 100;
+                }
+                else
+                    progressBar1.Value = (int)percent;
             }
-            else
-                progressBar1.Value = (int)percent;
+            catch (Exception e)
+            {
+                MessageBox.Show(""+e+"\nPERCENT : " +percent);
+            }
             //zedGraphControl1.GraphPane.CurveList.Clear();
 
             // Draw Graph
