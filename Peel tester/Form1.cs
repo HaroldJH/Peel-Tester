@@ -48,6 +48,7 @@ namespace Peel_tester
         private System.Windows.Forms.Timer timer4;
         private System.Windows.Forms.Timer timer5;
         private System.Windows.Forms.Timer timer6;
+        private System.Windows.Forms.Timer timer7;
         private String reicevedData = "";
         private double CAL00 = 140;
         private double CAL50 = 650;
@@ -90,10 +91,13 @@ namespace Peel_tester
         private List<double> maxX;
         private List<double> minX;
         private int f = 0;
+        private List<String> tempStrl;
+        private int tempIndex = 0;
 
         public Form1()
         {
             reiceivedString = new List<string>();
+            tempStrl = new List<string>();
 
             queue = new Queue<String>();
             seq = new List<String>();
@@ -251,6 +255,11 @@ namespace Peel_tester
             timer6 = new System.Windows.Forms.Timer();
             timer6.Interval = 100;
             timer6.Tick += new EventHandler(reqtClient);
+
+            timer7 = new System.Windows.Forms.Timer();
+            timer7.Interval = 100;
+            timer7.Tick += new EventHandler(drawing1);
+            
         }
 
         private void reiceiveCheck(object sender, EventArgs e)
@@ -336,6 +345,8 @@ namespace Peel_tester
                 sp.WriteTimeout = (int)500;
                 sp.ReceivedBytesThreshold = 1;
                 f = 0;
+                fl1 = 0;
+
                 if (sp.IsOpen)
                 {
                     //sp.Close();
@@ -350,15 +361,12 @@ namespace Peel_tester
                         label39.Text = "Connecting....";
                         Console.WriteLine("CONNECTED");
                         state = 1;
-
-                        // Send heart beat
-                        reicevedData = "OK";
                     
                         //timer2.Start();
                         //startCommSend();
                         byte[] bytes = Encoding.UTF8.GetBytes("ATZ\n");
                         sp.Write(bytes, 0, bytes.Length);
-                        fl1 = 0;
+                       
                         tStat = 3;
                        // timer.Start();
                         //thread = new Thread(new ThreadStart(sendHeartBeat));
@@ -372,6 +380,7 @@ namespace Peel_tester
                         // 시리얼포트 open실패시 예외처리
                         //throw new se
                         Console.WriteLine(exception);
+                        label39.Text = "Disconnected";
                         MessageBox.Show("연결 상태를 확인하십시오");
                     }
 
@@ -398,6 +407,7 @@ namespace Peel_tester
                         timer3.Stop();
                         timer5.Stop();
                         timer6.Stop();
+                        timer7.Stop();
                         break;
                     }
                 case 2:
@@ -408,6 +418,7 @@ namespace Peel_tester
                         timer5.Stop();
                         timer5.Stop();
                         timer6.Stop();
+                        timer7.Stop();
                         break;
                     }
                 case 3:
@@ -418,6 +429,7 @@ namespace Peel_tester
                         timer5.Stop();
                         timer5.Stop();
                         timer6.Stop();
+                        timer7.Stop();
                         break;
                     }
                 case 5:
@@ -427,6 +439,7 @@ namespace Peel_tester
                         timer3.Stop();
                         timer5.Start();
                         timer6.Stop();
+                        timer7.Stop();
                         break;
                     }
                 case 6:
@@ -436,6 +449,17 @@ namespace Peel_tester
                         timer3.Stop();
                         timer5.Stop();
                         timer6.Start();
+                        timer7.Stop();
+                        break;
+                    }
+                case 7:
+                    {
+                        timer.Stop();
+                        timer2.Stop();
+                        timer3.Stop();
+                        timer5.Stop();
+                        timer6.Start();
+                        timer7.Start();
                         break;
                     }
                 default :
@@ -556,7 +580,7 @@ namespace Peel_tester
                     case 4:
                         {
                             Console.WriteLine("CALIB {0}", reiceivedString[3].Split(new String[] { " " }, StringSplitOptions.None)[2]);
-                            CAL00 = double.Parse(reiceivedString[2].Split(new String[] { " " }, StringSplitOptions.None)[2]);
+                            cali00 = double.Parse(reiceivedString[2].Split(new String[] { " " }, StringSplitOptions.None)[2]);
                             calib = double.Parse(reiceivedString[3].Split(new String[] { " " }, StringSplitOptions.None)[2]);
                             tStat = 1;
                             label39.Text = "Connected";
@@ -645,8 +669,11 @@ namespace Peel_tester
                         thread.Abort();
                         //timer4.Stop();
                         fl1++;
-                        tStat = 0;
+                        //tStat = 0;
+                        tStat = 7;
+                        tempStrl.Clear();
                         sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+                        
                         break;
                     }
 
@@ -691,7 +718,7 @@ namespace Peel_tester
                     }
                     else if (temp.IndexOf("OK\n") != -1)
                     {
-                        
+                        Console.WriteLine("살아있음....");
                     }
                 }
             }
@@ -765,6 +792,7 @@ namespace Peel_tester
                         fl1++;
                         tStat = 0;
                         sp.DataReceived += new SerialDataReceivedEventHandler(dataReceived);
+                        
                         break;
                     }
             }
@@ -811,7 +839,7 @@ namespace Peel_tester
         private void dataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             //sp.DiscardInBuffer();
-            queue.Clear();
+           // queue.Clear();
             // start measure
             int size = sp.BytesToRead;
             byte[] bytes = new byte[size];
@@ -819,138 +847,212 @@ namespace Peel_tester
 
             String recStr = Encoding.Default.GetString(bytes);
             String tempStr = orgData(recStr);
-            //this.tempStr += tempStr + "\r\n";
-            Console.WriteLine("값 : " + tempStr);
-            if (tempStr.Length == 14)
+
+            Console.WriteLine("INDEX : {0}", tempIndex);
+            Console.WriteLine("COUNT : {0}", tempStrl.Count);
+            if (tempIndex < tempStrl.Count)
             {
-                String[] data = tempStr.Split(new String[] { " " }, StringSplitOptions.None);
-                if (data.Count() == 3)
+                Console.WriteLine("테스트문자열 : {0}", tempStrl[tempIndex]);
+                if (tempStrl[tempIndex].IndexOf("0") == 0 && tempStr.IndexOf("END") == -1)
+                //if (tempStr.IndexOf("START") == -1 && tempStr.IndexOf("PAUSE") == -1 && tempStr.IndexOf("RESET") == -1 && tempStr.IndexOf("END") == -1 && tempStr.IndexOf("") == -1)
                 {
+                    String[] data = tempStrl[tempIndex].Split(new String[] { " " }, StringSplitOptions.None);
+                    tempIndex++;
                     //double calcValue = double.Parse(data[2]) * calVal;//((CAL50 - CAL00) / 500) * (double.Parse(data[2]) - CAL00);
                     //double calcValue = (double.Parse(data[2]) * cali)/40 - calVal;
                     //if ((calib - cali00) == 0) { MessageBox.Show("ZERO...."); }
-                    double calcValue = cali * (double.Parse(data[2]) - cali00) / (calib - cali00);
-                    if (data[0].Equals("0000"))
+                    double calcValue = 0;
+
+                    //Console.WriteLine("SEQ : " + data[0]);
+
+                    seq.Add(data[0]);
+
+                    if (data.Length == 3)
                     {
-                        MessageBox.Show("CAL 00 : " + cali00 + "\nCALIB : " + calib + "\nADC : " + data[2]);
-                    }
-                    Console.WriteLine("SEQ : " + data[0]);
-                    
-                        seq.Add(data[0]);
-                    
                         percent = float.Parse(data[0]) / 406 * 100;
-                        Console.WriteLine("X : " + data[1]);
-                        Console.WriteLine("Y : " + calcValue);
+                        calcValue = cali * ((double.Parse(data[2]) - cali00) / (calib - cali00));
                         x.Add(int.Parse(data[1]) / 10f);
                         y.Add(Math.Round(calcValue, 2));
-                    try { 
-                    if (int.Parse(data[0]) > 2 && y.Count-2>0&&x.Count-1>0)
+                        Console.WriteLine("X : " + data[1]);
+                    }
+                    else
                     {
-                        inclination.Add((int)(y[y.Count-1] - y[y.Count-2]));
-                        if (inclination.Count > 1)
+                        calcValue = cali * ((double.Parse(data[1]) - cali00) / (calib - cali00));
+                        x.Add(int.Parse(data[0]) / 10f);
+                        y.Add(Math.Round(calcValue, 2));
+                        Console.WriteLine("X : " + data[1]);
+                    }
+
+                    Console.WriteLine("Y : " + calcValue);
+                    
+
+                    if (y.Count - 1 > 0 && x.Count - 1 > 0)
+                    {
+                        Console.WriteLine("기울기 : {0}", (int)(y[y.Count - 1] - y[y.Count - 2]));
+                        inclination.Add((int)(y[y.Count - 1] - y[y.Count - 2]));
+                        if (inclination.Count > 2)
                         {
-                            if (inclination[inclination.Count-1] == 0 && inclination[inclination.Count - 2] < 0)
+                            if (inclination[inclination.Count - 1] < 0 && inclination[inclination.Count - 2] > 0)
                             {
                                 // 최솟값
-                                minY.Add((int)y[y.Count-1]);
+                                minY.Add((int)y[y.Count - 1]);
                                 minX.Add((int)x[x.Count - 1]);
                             }
-                            else if (inclination[inclination.Count-1] == 0 && inclination[inclination.Count - 2] > 0)
+                            else if (inclination[inclination.Count - 1] < 0 && inclination[inclination.Count - 2] < 0)
                             {
                                 // 최댓값
-                                maxY.Add((int)y[y.Count-1]);
+                                maxY.Add((int)y[y.Count - 1]);
                                 maxX.Add((int)x[x.Count - 1]);
                             }
                         }
                     }
-                        
+
                     sum += calcValue;
+                    tempStr = "";
                     //this.write(tempStr, "/log.txt");
                     //drawing();
-                    this.Invoke(new draw(drawing), null);
+                    //this.Invoke(new draw(drawing), null);
+
+
+                }
+                //else if (tempStr.IndexOf("END") != -1)
+                else if (tempStrl[tempIndex].Equals("END"))
+                {
+                    tempIndex++;
+                    //MessageBox.Show("완료되었습니다.....");
+                    this.tempStr = "";
+                    tStat = 0;
+                    progressBar1.Value = 100;
+                    //label41.Text = String.Format("{0} %", 100);
+                    //progressBar1.Style = ProgressBarStyle.Marquee;
+
+                    //if(thread.ThreadState)
+
+                    thread = new Thread(new ThreadStart(sendStatics));
+                    thread.Start();
+                    /*
+                    label31.Text = String.Format("{0}", max);
+                    label32.Text = String.Format("{0}", min);
+                    label35.Text = String.Format("{0}", avg);
+                        * */
+
+                }
+                else if (tempStrl[tempIndex].IndexOf("PAUSE") != -1)
+                {
+                    tempIndex++;
+                }
+                else if (tempStrl[tempIndex].IndexOf("RESET") != -1)
+                {
+                    tempIndex++;
+                    //tStat = 1;
+                    fl1 = 1;
+                    flag = "RST";
+                    state1 = 0;
+                    tempStr = "";
+                    if (sp != null)
+                    {
+                        if (sp.IsOpen)
+                        {
+                            sp.DataReceived -= new SerialDataReceivedEventHandler(dataReceived);
+                            bytes = Encoding.UTF8.GetBytes(String.Format("ATC RST\n", std));
+                            //thread = new Thread(new ThreadStart(resetFunc));
+                            //thread.Start();
+                            x.Clear();
+                            y.Clear();
+                            seq.Clear();
+                            list.Clear();
+                            sp.Write(bytes, 0, bytes.Length);
                         }
-                    catch (Exception e1)
-                    {
-                        //MessageBox.Show("테스트용\n{0}", e1.Message);
                     }
-                }     
-            }
-            //else if (tempStr.IndexOf("END") != -1)
-            else if (tempStr.Equals("END"))
-            {
-                MessageBox.Show("완료되었습니다.....");
-                percent = 100;
-                //progressBar1.Style = ProgressBarStyle.Marquee;
-                
-                avg = sum / double.Parse(seq[seq.Count - 1]);
-                double[] numberY = new double[seq.Count];
-
-                for (int i = 0; i < seq.Count; i++)
-                {
-                    numberY[i] = x[i];
-                }
-                std = Math.Sqrt(numberY.Average(n => { double dif = n - avg; return dif * dif; }));
-                Invoke(new drawR(result), avg, std, rMin, rMax, resultF);
-                
-                //if(thread.ThreadState)
                     
-                thread = new Thread(new ThreadStart(sendStatics));
-                thread.Start();
-                /*
-                label31.Text = String.Format("{0}", max);
-                label32.Text = String.Format("{0}", min);
-                label35.Text = String.Format("{0}", avg);
-                    * */
-
-            }
-            else if(tempStr.IndexOf("PAUSE") != -1)
-            {
-
-            }
-            else if (tempStr.IndexOf("RESET") != -1)
-            {
-                //tStat = 1;
-                fl1 = 1;
-                flag = "RST";
-                state1 = 0;
-                if (sp != null)
-                {
-                    if (sp.IsOpen)
-                    {
-                        sp.DataReceived -= new SerialDataReceivedEventHandler(dataReceived);
-                        bytes = Encoding.UTF8.GetBytes(String.Format("ATC RST\n", std));
-                        //thread = new Thread(new ThreadStart(resetFunc));
-                        //thread.Start();
-                        x.Clear();
-                        y.Clear();
-                        seq.Clear();
-                        list.Clear();
-                        sp.Write(bytes, 0, bytes.Length);
-                    }
+                    zedGraphControl1.Refresh();
+                    zedGraphControl1.AxisChange();
                 }
-                zedGraphControl1.Refresh();
-                zedGraphControl1.AxisChange();
-            }
-            else
-            {
-                if (!tempStr.Equals(""))
+                else
                 {
-                    reiceivedString.Add(tempStr);
-                    Console.WriteLine("크기 : {0}", reiceivedString.Count);
+                    tempIndex++;
                 }
+                
             }
+
+            this.tempStr = tempStr;
+            Console.WriteLine("값 : " + tempStr);
+            
             sp.DiscardInBuffer();
+        }
+
+        private void dataProcess(Object sender, EventArgs e)
+        {
+            
         }
 
         private void sendStatics()
         {
+            Console.WriteLine(minY.Count());
+            Console.WriteLine(maxY.Count());
+            //MessageBox.Show("통계계산");
+            int inx1 = 0;
+            int inx2 = 0;
+            try { 
+            for (int i = 0; i < x.Count; i++)
+            {
+                if (x[i] <= (int)numericUpDown3.Value)
+                {
+                    inx1 = i;
+                }
+                else
+                    break;
+            }
+
+            for (int i = 0; i < x.Count; i++)
+            {
+                if (x[i] <= (int)numericUpDown4.Value)
+                {
+                    inx2 = i;
+                }
+                else
+                    break;
+            }
+
+            sum = 0; 
+             
+            for (int i = inx1; i < inx2-1; i++)
+            {
+                sum += y[i];
+            }
+            
+                avg = sum / (inx2 - inx1);
+                /*
+            double[] numberY = new double[inx2-inx1];
+            
+            for (int i = inx1; i < inx2 ; i++)
+            {
+                numberY[inx2-i-1] = y[i];
+            }
+            
+            std = Math.Sqrt(numberY.Average(n => { double dif = n - avg; return dif * dif; }));
+              
+                 * */
+                //Math.Sqrt(((double)(inx2-inx1)*sum);
+            double sum2 = 0f;
+            
+            for (int i = inx1; i < inx2;i++ )
+                sum2 += Math.Pow((avg - y[i]), 2);
+
+            sum2 = sum2 / (inx2 - inx1);
+
+            std = Math.Sqrt(sum2);
             //reiceivedString.RemoveRange(0, reiceivedString.Count-1);
             reiceivedString.Clear();
             fl1 = 0;
-
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("" + e);
+            }
             byte[] bytes = Encoding.UTF8.GetBytes("OK\n");
             sp.Write(bytes, 0, bytes.Length);
-
+            Console.WriteLine(String.Format("ATD MIN {0}\n", (int)(minY.Min() * 10)));
             bytes = Encoding.UTF8.GetBytes(String.Format("ATD MIN {0}\n", (int)(minY.Min() * 10)));
             sp.Write(bytes, 0, bytes.Length);
             Console.WriteLine("size : {0}", reiceivedString.Count);
@@ -985,8 +1087,9 @@ namespace Peel_tester
                 resultF = "Fail";
             }
             sp.Write(bytes, 0, bytes.Length);
-            
+            Invoke(new drawR(result), avg, std, rMin, rMax, resultF);
             MessageBox.Show("통계값 전송완료.");
+            tStat = 2;
         }
 
         private static bool EndsWithSaurus(String s)
@@ -1076,12 +1179,14 @@ namespace Peel_tester
                 // '\n'이 수신될 때까지 큐에 누적한다.
                 Console.WriteLine("index : " + recStr.IndexOf("\n"));
                 queue.Enqueue(recStr);
+                Console.WriteLine("누적 : {0}", queue.Count);
+
             }
             else
             {
                 // '\n'이 수신된경우 \n이전 이전문자열은 큐에서 꺼낸 기존문자열과 조합. 이후문자열은 다시 큐에 누적.
                 String[] tempStrArr = recStr.Split(new String[] { "\n" }, StringSplitOptions.None);
-
+                Console.WriteLine("누적111 : {0}", queue.Count);
                 for (int i = 0; i < queue.Count; i++)
                 {
                     Console.WriteLine("CNT : " + queue.Count);
@@ -1093,13 +1198,16 @@ namespace Peel_tester
                 if (tempStrArr[1].IndexOf("\n") != tempStrArr[1].Count() - 1 && tempStrArr[1].IndexOf("\n") == -1 && tempStrArr[1].Count() != 14)
                 {
                     queue.Enqueue(tempStrArr[1]);
-                }
-                else if (tempStrArr[1].IndexOf("\n") != -1)
-                {
+               }
+               else if (tempStrArr[1].IndexOf("\n") != -1)
+               {
                     //tempStr += "\n"+tempStrArr[1];
-                }
+                   Console.WriteLine("손실된거?? {0}", tempStrArr[1]);
+               }
             }
             Console.WriteLine("return Value : " + tempStr);
+            if (!tempStr.Equals(""))
+                tempStrl.Add(tempStr);
             return tempStr;
         }
 
@@ -1147,6 +1255,11 @@ namespace Peel_tester
             }
         }
 
+        private void drawing1(object sender, EventArgs e)
+        {
+            Invoke(new draw(drawing), null);
+        }
+
         private void drawing()
         {
             list.Clear();
@@ -1155,9 +1268,13 @@ namespace Peel_tester
                 if ((int)percent >= 100)
                 {
                     progressBar1.Value = 100;
+                    label41.Text = String.Format("{0} %", 100);
                 }
                 else
+                { 
                     progressBar1.Value = (int)percent;
+                    label41.Text = String.Format("{0} %", percent);
+                }
             }
             catch (Exception e)
             {
@@ -1230,6 +1347,7 @@ namespace Peel_tester
             {
                 tStat = 0;
                 sp.Close();
+                label39.Text = "Disconnected";
             }
             else
             {
@@ -2037,6 +2155,7 @@ namespace Peel_tester
                     sp.Write(bytes, 0, bytes.Length);
                     thread = new Thread(new ThreadStart(resetFunc));
                     thread.Start();
+                    percent = 0;
                     x.Clear();
                     y.Clear();
                     seq.Clear();
@@ -2067,8 +2186,9 @@ namespace Peel_tester
                         if (temp.IndexOf("RESET") != -1)
                         {
                             reiceivedString.Add(temp);
-                            
+                            MessageBox.Show("초기화완료");
                             thStat = 1;
+                            //timer4.Start();
                             break;
                         }
                     }

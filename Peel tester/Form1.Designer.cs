@@ -117,6 +117,7 @@ namespace Peel_tester
             this.button14 = new System.Windows.Forms.Button();
             this.button5 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
+            this.label41 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
@@ -851,11 +852,20 @@ namespace Peel_tester
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
+            // label41
+            // 
+            this.label41.AutoSize = true;
+            this.label41.Location = new System.Drawing.Point(489, 291);
+            this.label41.Name = "label41";
+            this.label41.Size = new System.Drawing.Size(0, 12);
+            this.label41.TabIndex = 89;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1079, 693);
+            this.Controls.Add(this.label41);
             this.Controls.Add(this.comboBox3);
             this.Controls.Add(this.label40);
             this.Controls.Add(this.progressBar1);
@@ -1028,6 +1038,7 @@ namespace Peel_tester
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.Label label40;
         private System.Windows.Forms.ComboBox comboBox3;
+        private System.Windows.Forms.Label label41;
 
         //private System.Collections.Queue queue;
     }
